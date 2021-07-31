@@ -9,23 +9,13 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
 import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.ws.rs.DELETE;
-import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
@@ -59,7 +49,9 @@ public class PacketCaptureService
     @Produces( MediaType.TEXT_PLAIN )
     public Response startCapture() throws IOException, GeneralSecurityException
     {
-        java.nio.file.Path path = java.nio.file.Files.createTempFile( "wireshark-capture", ".pcapng" );
+        java.nio.file.Path path = java.nio.file.Files.createTempFile( "wireshark-capture-", ".pcapng" );
+
+        path.toFile().delete();
         
         // Typically this would be in the scripts:
         // 
@@ -67,11 +59,13 @@ public class PacketCaptureService
         // GSE:   sudo dumpcap -f "ether proto 0x99B9" -w [path]
         // SV:    sudo dumpcap -f "ether proto 0x88BA" -w [path]
         
-        ProcessBuilder pb = new ProcessBuilder( "/usr/bin/sudo", startCaptureScript, path.toString() );
+        ProcessBuilder pb = new ProcessBuilder( "powershell.exe", "-File", startCaptureScript, path.toString() );
         
         pb.redirectErrorStream( true );
         
         Process proc = pb.start();
+
+        
         
         // The PID in particular is security sensitive. We don't want even authorized
         // users changing the PID value to potentially terminate arbitrary processes.
@@ -124,7 +118,7 @@ public class PacketCaptureService
         //
         // sudo kill -INT [pid]
 
-        ProcessBuilder pb = new ProcessBuilder( "/usr/bin/sudo", stopCaptureScript, map.get( "pid" ) );
+        ProcessBuilder pb = new ProcessBuilder( "powershell.exe", "-File", stopCaptureScript, map.get( "pid" ) );
         
         pb.redirectErrorStream( true );
         

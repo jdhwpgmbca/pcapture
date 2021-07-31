@@ -4,6 +4,11 @@ This project uses Quarkus, the Supersonic Subatomic Java Framework.
 
 If you want to learn more about Quarkus, please visit its website: https://quarkus.io/ .
 
+- The idea is to use the Wireshark dumpcap.exe program to capture packets into a temporary .pcapng file,
+  then retrieve it at an arbitrary later time.
+- There are four commands: start, stop, read and delete.
+- The start command returns a token, which is then used as a header parameter for the other commands.
+
 ## Running the application in dev mode
 
 You can run your application in dev mode that enables live coding using:
