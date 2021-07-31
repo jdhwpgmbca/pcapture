@@ -1,4 +1,3 @@
-
-Write-Output "Test Dumpcap" > $1.log
-& 'C:\Program Files\Wireshark\dumpcap.exe' -i 'vEthernet' -w $1
-Write-Output "Done."
+$param1=$args[0]
+$env:Path+= ";C:\Program Files\Wireshark"
+(Start-Process -FilePath "dumpcap.exe" -ArgumentList "-i vEthernet -w $param1" -PassThru).Id

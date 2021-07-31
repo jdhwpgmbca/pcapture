@@ -11,32 +11,32 @@ import org.hamcrest.Matchers;
 @QuarkusTest
 public class GreetingResourceTest
 {
-    @Test
-    public void testStartEndpoint()
-    {
-        String token = given()
-          .when().post("/capture/start")
-          .then()
-             .statusCode(200)
-                .body( containsString( ":" ) )
-                .extract().asString();
-    }
+   //  @Test
+   //  public void testStartEndpoint()
+   //  {
+   //      String token = given()
+   //        .when().post("/capture/start")
+   //        .then()
+   //           .statusCode(200)
+   //              .body( containsString( ":" ) )
+   //              .extract().asString();
+   //  }
 
-    @Test
-    public void testStopEndpoint()
-    {
-        String token = given()
-          .when().post("/capture/start")
-          .then()
-             .statusCode(200)
-                .body( containsString( ":" ) )
-                .extract().asString();
+   //  @Test
+   //  public void testStopEndpoint()
+   //  {
+   //      String token = given()
+   //        .when().post("/capture/start")
+   //        .then()
+   //           .statusCode(200)
+   //              .body( containsString( ":" ) )
+   //              .extract().asString();
         
-        given().header( "token", token )
-          .when().post("/capture/stop")
-          .then()
-             .statusCode(200);
-    }
+   //      given().header( "token", token )
+   //        .when().post("/capture/stop")
+   //        .then()
+   //           .statusCode(200);
+   //  }
 
 //    @Test
 //    public void testReadEndpoint()

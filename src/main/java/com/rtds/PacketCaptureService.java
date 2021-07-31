@@ -8,11 +8,13 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.ws.rs.DELETE;
@@ -32,9 +34,6 @@ public class PacketCaptureService
     @ConfigProperty(name = "startCaptureScript")
     private String startCaptureScript;
     
-    @ConfigProperty(name = "stopCaptureScript")
-    private String stopCaptureScript;
-    
     @ConfigProperty(name = "keyStorePath" )
     private String keyStorePath;
     
@@ -50,33 +49,34 @@ public class PacketCaptureService
     public Response startCapture() throws IOException, GeneralSecurityException
     {
         java.nio.file.Path path = java.nio.file.Files.createTempFile( "wireshark-capture-", ".pcapng" );
-
-        path.toFile().delete();
         
         // Typically this would be in the scripts:
         // 
         // Goose: sudo dumpcap -f "ether proto 0x99B8" -w [path]
         // GSE:   sudo dumpcap -f "ether proto 0x99B9" -w [path]
         // SV:    sudo dumpcap -f "ether proto 0x88BA" -w [path]
+
+        // This now works on Windows
         
-        ProcessBuilder pb = new ProcessBuilder( "powershell.exe", "-File", startCaptureScript, path.toString() );
+        ProcessBuilder pb = new ProcessBuilder( "powershell.exe",  "-ExecutionPolicy", "Bypass", "-Command", startCaptureScript, path.toString() );
         
         pb.redirectErrorStream( true );
         
         Process proc = pb.start();
-
         
+        long pid;
         
-        // The PID in particular is security sensitive. We don't want even authorized
-        // users changing the PID value to potentially terminate arbitrary processes.
-        // For this reason we're encrypting the unique path and PID of the process
-        // together, and turning it into an opaque token that the reader needs to
-        // pass back to the other commands such as /stop and /read.
+        try( InputStream in = proc.getInputStream() )
+        {
+            String length_string = new String( in.readAllBytes(), "UTF8" );
+            
+            pid = Long.parseLong( length_string.trim() );
+        }
         
         Map<String,String> map = new HashMap<>();
         
         map.put( "path", path.toString() );
-        map.put( "pid", Long.toString( proc.pid() ) );
+        map.put( "pid", Long.toString( pid ) );
         
         ObjectMapper mapper = new ObjectMapper();
         
@@ -102,28 +102,18 @@ public class PacketCaptureService
     {
         if( token == null )
         {
-            return Response.status( Response.Status.NO_CONTENT ).build();
+            return Response.status( Response.Status.BAD_REQUEST ).build();
         }
         
         String json = extractJSONFromEncryptedToken( token );
         Map<String, String> map = extractMapFromJSON( json );
         
-        // Obviously we don't want this terminating arbitrary processes, even
-        // if the user is legitimate. For that reason we encrypt the path and
-        // PID into an opaque token. This actually performs two functions, one
-        // it keeps the path and PID away from the user, and two, it allows us
-        // to avoid storing the path and pid in a database.
+        Optional<ProcessHandle> ph = ProcessHandle.of( Long.parseLong( map.get( "pid" ) ) );
         
-        // Typically this would be in the script:
-        //
-        // sudo kill -INT [pid]
+        ph.ifPresent( handle -> {
+            handle.destroy();
+        } );
 
-        ProcessBuilder pb = new ProcessBuilder( "powershell.exe", "-File", stopCaptureScript, map.get( "pid" ) );
-        
-        pb.redirectErrorStream( true );
-        
-        Process proc = pb.start();
-        
         return Response.ok( token ).build();
     }
     
@@ -133,6 +123,11 @@ public class PacketCaptureService
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public Response readCapture( @HeaderParam("token") String token ) throws IOException, InterruptedException, GeneralSecurityException
     {
+        if( token == null )
+        {
+            return Response.status( Response.Status.BAD_REQUEST ).build();
+        }
+        
         String json = extractJSONFromEncryptedToken( token );
         Map<String, String> map = extractMapFromJSON( json );
         
@@ -140,19 +135,22 @@ public class PacketCaptureService
         
         ResponseBuilder rb;
         
-        try( BufferedInputStream bin = new BufferedInputStream( new FileInputStream( file ) ) )
-        {
-            rb = Response.ok( bin );
-            rb.header( "Content-Disposition", "attachment;filename=capture.pcapng" );
-        }
+        BufferedInputStream bin = new BufferedInputStream( new FileInputStream( file ) );
+        
+        rb = Response.ok( bin );
+        rb.header( "Content-Disposition", "attachment;filename=capture.pcapng" );
 
         return rb.build();
     }
     
     @DELETE
-    @Path( "/delete" )
     public Response deleteCapture( @HeaderParam("token") String token ) throws IOException, GeneralSecurityException
     {
+        if( token == null )
+        {
+            return Response.status( Response.Status.BAD_REQUEST ).build();
+        }
+        
         String json = extractJSONFromEncryptedToken( token );
         Map<String, String> map = extractMapFromJSON( json );
         File file = new File( map.get( "path" ) );
