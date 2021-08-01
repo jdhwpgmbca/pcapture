@@ -60,7 +60,7 @@ http PUT :8080/capture "Authorization:Bearer $access_token" token:$token
 
 # And do the GET method to download the capture data.
 
-http GET :8080/capture "Authorization:Bearer $access_token" token:$token
+http GET :8080/capture "Authorization:Bearer $access_token" token:$token -o capture.pcapng
 
 # And finally use DELETE to delete the capture data
 
