@@ -7,8 +7,7 @@ If you want to learn more about Quarkus, please visit its website: https://quark
 - The idea for the project is to use the Wireshark dumpcap.exe program to capture packets into a temporary .pcapng file,
   then retrieve the capture at an arbitrary later time.
 - The project can be secured using an OpenID-connect compatible server like Keycloak. Some instructions are given
-on how to enable authorization in a test environment. If you wish you can use this as some initial guidance on how
-to setup a production OIDC server.
+on how to enable authorization in a test environment.
 - There are four commands: start, stop, read and delete.
 - The start command returns a token, which is then used as a header parameter for the other commands.
 
