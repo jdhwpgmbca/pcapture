@@ -18,25 +18,25 @@ on how to enable authorization in a test environment.
 
 ## Authentication and Authorization
 
-There's some quarkus.oidc prefixed properties in the application.properties file that will need to be uncommented
-to reenable Authentication and Authorization. And you'll also need to uncomment the @Authenticated annotation
-on the PacketCaptureResource class. That will reenable authentication in the application itself. There is
-some additional configuration that you'll need to do too.
+To enable OpenID-connect authorization, you'll need to uncomment the @Authenticated annotation in the PacketCaptureResource
+class. And you'll need to update some of the settings in the application.properties file to point to your OpenID-connect
+authorization server. These settings my be commented, or uncommented. It won't make any difference unless the @Authenticated
+annotation is enabled.
 
-You'll need to change the port number of the keycloak server. Quarkus automaticaly runs a Keycloak server when it's
-run in quarkus:dev mode, but it's port is random, so you need to look over the server output to find the port number.
-You'll also need to login to the Keycloak server and delete the existing quarkus realm and create a new quarkus realm,
-importing this realm file here:
+When Quarkus is running in dev mode, it automatically runs a Keycloak server - if you have a system with Docker running
+on it. The TCP port number the Keycloak server runs on is random, so you'll need to look at the server output to find
+the correct port to connect to. Once you connect to the Keycloak server, you can login with admin/admin. Then you
+will need to delete the Quarkus realm, and re-create it. During the re-creation, it will ask you if you want to import
+a file. Click on the button to do an import, and import the file from this GitHub site:
 
 https://github.com/quarkusio/quarkus-quickstarts/blob/main/security-openid-connect-quickstart/config/quarkus-realm.json
 
-(The credentials for the dev mode Keycloak server is admin, admin)
-
 The file creates a realm with some default passwords that the application has configured in it's application.properties file.
+These passwords are very bad, so you might want to update them right away. There's also a client secret that should be
+regenerated. Quarkus will use a different TCP port for Keycloak every time it starts, or restarts. So you might want
+to use docker to create a slightly more permanenent version of Keycloak for testing.
 
 One more point: Once the authorization is enabled, the tests will break. They haven't been designed to handle authorization yet.
-
-See also: Look at the end of this README.md file for details on testing with authorization enabled.
 
 ### Testing with Authorization Enabled
 
