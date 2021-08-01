@@ -21,6 +21,7 @@ import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
@@ -29,7 +30,7 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 @Path("/capture" )
-public class PacketCaptureService
+public class PacketCaptureResource
 {
     @ConfigProperty(name = "startCaptureScript")
     private String startCaptureScript;
@@ -44,7 +45,6 @@ public class PacketCaptureService
     private String keyStorePassword;
     
     @POST
-    @Path("/start")
     @Produces( MediaType.TEXT_PLAIN )
     public Response startCapture() throws IOException, GeneralSecurityException
     {
@@ -52,19 +52,26 @@ public class PacketCaptureService
         
         // Typically this would be in the scripts:
         // 
-        // Goose: sudo dumpcap -f "ether proto 0x99B8" -w [path]
-        // GSE:   sudo dumpcap -f "ether proto 0x99B9" -w [path]
-        // SV:    sudo dumpcap -f "ether proto 0x88BA" -w [path]
+        // Goose: dumpcap -f "ether proto 0x99B8" -w [path]
+        // GSE:   dumpcap -f "ether proto 0x99B9" -w [path]
+        // SV:    dumpcap -f "ether proto 0x88BA" -w [path]
 
         // This now works on Windows
         
-        ProcessBuilder pb = new ProcessBuilder( "powershell.exe",  "-ExecutionPolicy", "Bypass", "-Command", startCaptureScript, path.toString() );
+        ProcessBuilder pb = new ProcessBuilder( "powershell.exe",  "-ExecutionPolicy", "RemoteSigned", "-Command", startCaptureScript, path.toString() );
         
         pb.redirectErrorStream( true );
         
         Process proc = pb.start();
         
         long pid;
+        
+        // Return the PID of the command that's run from the script in
+        // the standard output, not the PID of the script itself, as would
+        // have been returned by Process.pid(). This is important, because
+        // when you run the /stop endpoint later, you want to terminate the
+        // capture command (probably dumpcap or tcpdump), not the script
+        // itself.
         
         try( InputStream in = proc.getInputStream() )
         {
@@ -95,8 +102,7 @@ public class PacketCaptureService
         return Response.ok( iv_text + ":" + cyphertext ).build();
     }
 
-    @POST
-    @Path("/stop")
+    @PUT
     @Produces( MediaType.TEXT_PLAIN )
     public Response stopCapture( @HeaderParam("token") String token ) throws IOException, GeneralSecurityException
     {
@@ -119,7 +125,6 @@ public class PacketCaptureService
     
 
     @GET
-    @Path("/read")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public Response readCapture( @HeaderParam("token") String token ) throws IOException, InterruptedException, GeneralSecurityException
     {
@@ -144,6 +149,7 @@ public class PacketCaptureService
     }
     
     @DELETE
+    @Produces(MediaType.TEXT_PLAIN)
     public Response deleteCapture( @HeaderParam("token") String token ) throws IOException, GeneralSecurityException
     {
         if( token == null )
@@ -158,16 +164,15 @@ public class PacketCaptureService
         if( file.exists() ) 
         {
             file.delete();
+        }
+        
+        // Following the REST Semantics demand that a DELETE operation
+        // return the same result every time.
             
-            return Response.ok().build();
-        }
-        else
-        {
-            return Response.status( Response.Status.NOT_FOUND ).build();
-        }
+        return Response.ok().build();
     }
 
-    private Map<String, String> extractMapFromJSON( String json ) throws JsonProcessingException
+    Map<String, String> extractMapFromJSON( String json ) throws JsonProcessingException
     {
         ObjectMapper mapper = new ObjectMapper();
         TypeReference<HashMap<String, String>> typeRef = new TypeReference<HashMap<String, String>>() {};
@@ -175,7 +180,7 @@ public class PacketCaptureService
         return mapper.readValue( json, typeRef );
     }
 
-    private String extractJSONFromEncryptedToken( String token ) throws IOException, GeneralSecurityException
+    String extractJSONFromEncryptedToken( String token ) throws IOException, GeneralSecurityException
     {
         String[] split_token = token.split( ":" );
         IvParameterSpec iv = new IvParameterSpec( Base64.getDecoder().decode( split_token[0] ) );
@@ -184,7 +189,7 @@ public class PacketCaptureService
         return CryptoUtils.decrypt( "AES/CBC/PKCS5Padding", split_token[1], key, iv );
     }
     
-    private SecretKey getSecretKey() throws IOException, GeneralSecurityException
+    SecretKey getSecretKey() throws IOException, GeneralSecurityException
     {
         SecretKey key;
         File keystore_file = new File( keyStorePath );
