@@ -20,7 +20,7 @@ on how to enable authorization in a test environment.
 
 To enable OpenID-connect authorization, you'll need to uncomment the @Authenticated annotation in the PacketCaptureResource
 class. And you'll need to update some of the settings in the application.properties file to point to your OpenID-connect
-authorization server. These settings my be commented, or uncommented. It won't make any difference unless the @Authenticated
+authorization server. These settings may be commented, or uncommented. It won't make any difference unless the @Authenticated
 annotation is enabled.
 
 When Quarkus is running in dev mode, it automatically runs a Keycloak server - if you have a system with Docker running
