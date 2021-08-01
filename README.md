@@ -9,6 +9,62 @@ If you want to learn more about Quarkus, please visit its website: https://quark
 - There are four commands: start, stop, read and delete.
 - The start command returns a token, which is then used as a header parameter for the other commands.
 
+## Status and Future Directions
+
+- At this point the web service can tie in with a an OpenID-connect authentication server like Keycloak. There is no client front-end at this point. So the next steps would probably be to develop a single page application that uses JavaScript to fetch the authorization token and use the various REST functions to start/stop/download/delete captures. 
+- I suggest cloning the PacketCaptureResource class to something like SvPacketCaptureResource, GoosePacketCaptureResource, GsePacketCaptureResource, and changing the @Path annotations on them to keep them all unique. You could also customize the startCaptureScript.ps1 to also pass in the capture filter strings as arguments, and have each class use a different capture filter.
+
+## Authentication and Authorization
+
+There's some quarkus.oidc prefixed properties in the application.properties file that will need to be uncommented
+to reenable Authentication and Authorization. And you'll also need to uncomment the @Authenticated annotation
+on the PacketCaptureResource class. That will reenable authentication in the application itself. There is
+some additional configuration that you'll need to do too.
+
+You'll need to change the port number of the keycloak server. Quarkus automaticaly runs a Keycloak server when it's
+run in quarkus:dev mode, but it's port is random, so you need to look over the server output to find the port number.
+You'll also need to login to the Keycloak server and delete the existing quarkus realm and create a new quarkus realm,
+importing this realm file here:
+
+https://github.com/quarkusio/quarkus-quickstarts/blob/main/security-openid-connect-quickstart/config/quarkus-realm.json
+
+(The credentials for the dev mode Keycloak server is admin, admin)
+
+The file creates a realm with some default passwords that the application has configured in it's application.properties file.
+
+One more point: Once the authorization is enabled, the tests will break. They haven't been designed to handle authorization yet.
+
+See also: Look at the end of this README.md file for details on testing with authorization enabled.
+
+### Testing with Authorization Enabled
+
+(Install the jq JSON query client using one of the preferred methods. I used the chocolatey package manager to install mine.)
+
+Using the HttPie client to get an access token from the test keycloak server:
+
+- Getting the access token from the Keycloak server returns it's response in JSON format, so you need to use jq to extract the access_token, or you need to cut and paste yourself. However, the access tokens only last 5 minutes, so be quick!
+
+```shell script
+# Fetch the access token from the Keycloak server
+$access_token=(http -v -a backend-service:secret --form POST :49254/auth/realms/quarkus/protocol/openid-connect/token username=alice password=alice grant_type=password | jq --raw-output '.access_token')
+
+# Start a packet capture, storing the token response. It's needed for the other operations.
+
+$token=(http POST :8080/capture "Authorization:Bearer $access_token")
+
+# The capture is currently running. Do the PUT method to stop it.
+
+http PUT :8080/capture "Authorization:Bearer $access_token" token:$token
+
+# And do the GET method to download the capture data.
+
+http GET :8080/capture "Authorization:Bearer $access_token" token:$token
+
+# And finally use DELETE to delete the capture data
+
+http DELETE :8080/capture "Authorization:Bearer $access_token" token:$token
+```
+
 ## Running the application in dev mode
 
 You can run your application in dev mode that enables live coding using:
