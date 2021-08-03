@@ -25,99 +25,34 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 public class CryptoUtilsTest
 {
-    
+
     public CryptoUtilsTest()
     {
     }
-    
+
     @BeforeEach
     public void setUp()
     {
     }
-    
+
     @AfterEach
     public void tearDown()
     {
     }
 
-    /**
-     * Test of generateKey method, of class CryptoUtils.
-     */
-//    @Test
-//    public void testGenerateKey() throws Exception
-//    {
-//        System.out.println( "generateKey" );
-//        String algorithm = "";
-//        int key_size = 0;
-//        SecretKey expResult = null;
-//        SecretKey result = CryptoUtils.generateKey( algorithm, key_size );
-//        assertEquals( expResult, result );
-//        // TODO review the generated test code and remove the default call to fail.
-//        fail( "The test case is a prototype." );
-//    }
-
-    /**
-     * Test of generateIv method, of class CryptoUtils.
-     */
-//    @Test
-//    public void testGenerateIv()
-//    {
-//        System.out.println( "generateIv" );
-//        IvParameterSpec expResult = null;
-//        IvParameterSpec result = CryptoUtils.generateIv();
-//        assertEquals( expResult, result );
-//        // TODO review the generated test code and remove the default call to fail.
-//        fail( "The test case is a prototype." );
-//    }
-
-    /**
-     * Test of encrypt method, of class CryptoUtils.
-     */
-//    @Test
-//    public void testEncrypt() throws Exception
-//    {
-//        System.out.println( "encrypt" );
-//        String algorithm = "";
-//        String input = "";
-//        SecretKey key = null;
-//        IvParameterSpec iv = null;
-//        String expResult = "";
-//        String result = CryptoUtils.encrypt( algorithm, input, key, iv );
-//        assertEquals( expResult, result );
-//        // TODO review the generated test code and remove the default call to fail.
-//        fail( "The test case is a prototype." );
-//    }
-
-    /**
-     * Test of decrypt method, of class CryptoUtils.
-     */
-//    @Test
-//    public void testDecrypt() throws Exception
-//    {
-//        System.out.println( "decrypt" );
-//        String algorithm = "";
-//        String cipherText = "";
-//        SecretKey key = null;
-//        IvParameterSpec iv = null;
-//        String expResult = "";
-//        String result = CryptoUtils.decrypt( algorithm, cipherText, key, iv );
-//        assertEquals( expResult, result );
-//        // TODO review the generated test code and remove the default call to fail.
-//        fail( "The test case is a prototype." );
-//    }
-    
     @Test
-    void givenString_whenEncrypt_thenSuccess()
-        throws NoSuchAlgorithmException, IllegalBlockSizeException, InvalidKeyException,
-        BadPaddingException, InvalidAlgorithmParameterException, NoSuchPaddingException { 
+    void testEncryptDecrypt()
+            throws NoSuchAlgorithmException, IllegalBlockSizeException, InvalidKeyException,
+                   BadPaddingException, InvalidAlgorithmParameterException, NoSuchPaddingException
+    {
 
-        String input = "baeldung";
+        String input = "Some not very random text.";
         SecretKey key = CryptoUtils.generateKey( "AES", 128 );
         IvParameterSpec ivParameterSpec = CryptoUtils.generateIv();
         String algorithm = "AES/CBC/PKCS5Padding";
-        String cipherText = CryptoUtils.encrypt(algorithm, input, key, ivParameterSpec);
-        String plainText = CryptoUtils.decrypt(algorithm, cipherText, key, ivParameterSpec);
-        
-        Assertions.assertEquals(input, plainText);
+        String cipherText = CryptoUtils.encrypt( algorithm, input, key, ivParameterSpec );
+        String plainText = CryptoUtils.decrypt( algorithm, cipherText, key, ivParameterSpec );
+
+        Assertions.assertEquals( input, plainText );
     }
 }
