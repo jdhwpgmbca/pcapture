@@ -57,6 +57,33 @@
     </dependency>
   </dependencies>
   <build>
+    <resources>
+        <resource>
+            <directory>src/main/resources</directory>
+            <filtering>false</filtering>
+            <excludes>
+                <exclude>**/*.properties</exclude>
+                <exclude>**/*.xml</exclude>
+                <exclude>**/*.css</exclude>
+                <exclude>**/*.js</exclude>
+                <exclude>**/*.ini</exclude>
+                <exclude>**/*.yml</exclude>
+            </excludes>
+        </resource>
+        <resource>
+            <directory>src/main/resources</directory>
+            <filtering>true</filtering>
+            <includes>
+                <include>**/*.properties</include>
+                <include>**/*.xml</include>
+                <include>**/*.css</include>
+                <include>**/*.js</include>
+                <include>**/*.ini</include>
+                <include>**/*.yml</include>
+            </includes>
+        </resource>
+    </resources>
+      
     <plugins>
       <plugin>
         <groupId>${quarkus.platform.group-id}</groupId>
