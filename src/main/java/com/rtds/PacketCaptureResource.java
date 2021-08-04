@@ -135,9 +135,25 @@ public class PacketCaptureResource
         
         Optional<ProcessHandle> ph = ProcessHandle.of( Long.parseLong( map.get( "pid" ) ) );
         
-        ph.ifPresent( handle -> {
-            handle.destroy();
-        } );
+        // Check to make the decrypted path exists, before using the process
+        // id to terminate the process. This ensures that the decryption isn't
+        // simply a random bunch of bytes from a token generated on the client
+        // side.
+        
+        if( map.get( "path" ) != null )
+        {
+            File file = new File( map.get( "path" ) );
+            
+            if( file.exists() )
+            {
+                // Now that we know the path exists, we can assume the decrypted
+                // data is valid, and we can use the PID to terminate the process.
+                
+                ph.ifPresent( handle -> {
+                    handle.destroy();
+                } );
+            }
+        }
 
         return Response.ok( token ).build();
     }
