@@ -100,6 +100,32 @@
         </includes>
       </resource>
     </resources>
+    <testResources>
+        <testResource>
+            <directory>src/test/resources</directory>
+            <filtering>false</filtering>
+            <excludes>
+                <exclude>**/*.properties</exclude>
+                <exclude>**/*.xml</exclude>
+                <exclude>**/*.css</exclude>
+                <exclude>**/*.js</exclude>
+                <exclude>**/*.ini</exclude>
+                <exclude>**/*.yml</exclude>
+            </excludes>
+        </testResource>
+        <testResource>
+            <directory>src/test/resources</directory>
+            <filtering>true</filtering>
+            <includes>
+                <include>**/*.properties</include>
+                <include>**/*.xml</include>
+                <include>**/*.css</include>
+                <include>**/*.js</include>
+                <include>**/*.ini</include>
+                <include>**/*.yml</include>
+            </includes>
+        </testResource>
+    </testResources>
     <plugins>
       <plugin>
         <groupId>${quarkus.platform.group-id}</groupId>
