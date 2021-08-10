@@ -32,13 +32,13 @@ import org.junit.jupiter.api.TestMethodOrder;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class PacketCaptureResourceTest {
 
-    private static String token;
+    private static String id;
 
     @Test
     @Order(1)
     public void testStartEndpoint() {
-        token = given()
-                .when().post("/capture")
+        id = given()
+                .when().post("/api/v2/capture")
                 .then()
                 .statusCode(200)
                 .body(containsString(":"))
@@ -48,8 +48,8 @@ public class PacketCaptureResourceTest {
     @Test
     @Order(2)
     public void testStopEndpoint() {
-        given().header("token", token)
-                .when().put("/capture")
+        given().param( "id", id )
+                .when().put("/api/v2/capture")
                 .then()
                 .statusCode(200);
     }
@@ -57,8 +57,8 @@ public class PacketCaptureResourceTest {
     @Test
     @Order(3)
     public void testReadEndpoint() {
-        given().header("token", token)
-                .when().get("/capture")
+        given().param( "id", id )
+                .when().get("/api/v2/capture")
                 .then()
                 .header("Content-Disposition", is("attachment;filename=capture.pcapng"))
                 .contentType(ContentType.BINARY)
@@ -68,8 +68,8 @@ public class PacketCaptureResourceTest {
     @Test
     @Order(4)
     public void testDeleteEndpoint() {
-        given().header("token", token)
-                .when().delete("/capture")
+        given().param( "id", id )
+                .when().delete("/api/v2/capture")
                 .then()
                 .statusCode(200);
     }
