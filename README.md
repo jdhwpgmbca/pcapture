@@ -29,7 +29,10 @@ The file creates a realm with some default passwords that the application has co
 These passwords are very bad, so you might want to update them right away. There's also a client secret that should be
 regenerated.
 
-### Testing with Authorization Enabled
+### Testing
+
+- The program can be tested with .\mvnw clean compile test, or you can run .\mvnw clean compile quarkus:dev and press <o> to show the test output, followed by <r> to run the tests.
+- An alternative way of testing that involves the Keycloak (OIDC) server is to run the test_access.ps1 script.
 
 (Install the jq JSON query client using one of the preferred methods. I used the chocolatey package manager to install mine.)
 
@@ -60,6 +63,8 @@ If you want to build an _über-jar_, execute the following command:
 ```shell script
 ./mvnw package -Dquarkus.package.type=uber-jar
 ```
+
+You may also want to add additional -D parameters to set properties like the auth server url, secret, etc.
 
 The application is now runnable using `java -jar target/quarkus-app/quarkus-run.jar`.
 
