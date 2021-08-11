@@ -15,7 +15,7 @@
  *   DAMAGE.
  */
 
-ackage com.rtds.dto;
+package com.rtds.dto;
 
 import com.rtds.jpa.DumpcapProcess;
 import java.io.IOException;
