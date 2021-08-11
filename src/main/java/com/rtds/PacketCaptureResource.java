@@ -17,54 +17,52 @@
 
 package com.rtds;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.rtds.crypto.CryptoUtils;
-import io.quarkus.security.Authenticated;
+import com.rtds.dto.DumpcapProcessDto;
+import com.rtds.jpa.DumpcapProcess;
+import com.rtds.svc.DumpcapDbService;
+import io.quarkus.security.identity.SecurityIdentity;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.GeneralSecurityException;
-import java.security.KeyStore;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 import java.util.Optional;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.IvParameterSpec;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import java.util.UUID;
+import javax.annotation.security.RolesAllowed;
+import javax.inject.Inject;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.jboss.resteasy.annotations.cache.NoCache;
 
-@Path("/capture" )
-//@Authenticated
+@Path("/api/capture" )
 public class PacketCaptureResource
 {
     @ConfigProperty(name = "startCaptureScript")
-    private String startCaptureScript;
+    String startCaptureScript;
     
     @ConfigProperty(name = "keyStorePath" )
-    private String keyStorePath;
+    String keyStorePath;
     
     @ConfigProperty(name = "keyStoreAlias")
-    private String keyStoreAlias;
+    String keyStoreAlias;
     
     @ConfigProperty(name = "keyStorePassword")
-    private String keyStorePassword;
+    String keyStorePassword;
+
+    @Inject
+    DumpcapDbService dumpcapDbService;
+    
+    @Inject
+    SecurityIdentity identity;
     
     @POST
     @Produces( MediaType.TEXT_PLAIN )
+    @RolesAllowed("user")
     public Response startCapture() throws IOException, GeneralSecurityException
     {
         java.nio.file.Path path = java.nio.file.Files.createTempFile( "wireshark-capture-", ".pcapng" );
@@ -81,16 +79,14 @@ public class PacketCaptureResource
         
         pb.redirectErrorStream( true );
         
+        // Start the process
+        
         Process proc = pb.start();
         
         long pid;
         
-        // Return the PID of the command that's run from the script in
-        // the standard output, not the PID of the script itself, as would
-        // have been returned by Process.pid(). This is important, because
-        // when you run the /stop endpoint later, you want to terminate the
-        // capture command (probably dumpcap or tcpdump), not the script
-        // itself.
+        // Read the process ID from the output of the script. It will be used
+        // later to stop the process.
         
         try( InputStream in = proc.getInputStream() )
         {
@@ -99,55 +95,36 @@ public class PacketCaptureResource
             pid = Long.parseLong( length_string.trim() );
         }
         
-        Map<String,String> map = new HashMap<>();
+        // Store the process information, file path and the name of the user in
+        // the database. This will be used later to lookup the process ID, and
+        // to remove the capture file.
         
-        map.put( "path", path.toString() );
-        map.put( "pid", Long.toString( pid ) );
+        UUID dbid = dumpcapDbService.createDumpCapProcess( pid, path.toString(), getPrincipalName() );
         
-        ObjectMapper mapper = new ObjectMapper();
-        
-        String cleartext = mapper.writerWithDefaultPrettyPrinter().writeValueAsString( map );
-
-        SecretKey key = getSecretKey();
-        IvParameterSpec iv = CryptoUtils.generateIv();
-        String cyphertext = CryptoUtils.encrypt( "AES/CBC/PKCS5Padding", cleartext, key, iv );
-        String iv_text = Base64.getEncoder().encodeToString( iv.getIV() );
-        
-        // Now return the opaque (encrypted) token in the HTTP response.
-        
-        // Base64 is composed of upper and lowercase letters, 0-9 and +/-
-        // and the == are terminators, so the : character is distinct.
-        
-        return Response.ok( iv_text + ":" + cyphertext ).build();
+        return Response.ok( dbid ).build();
     }
-
+    
     @PUT
+    @Path("/{id}")
     @Produces( MediaType.TEXT_PLAIN )
-    public Response stopCapture( @HeaderParam("token") String token ) throws IOException, GeneralSecurityException
+    @RolesAllowed("user")
+    @NoCache
+    public Response stopCapture( @PathParam("id") String id ) throws IOException, GeneralSecurityException
     {
-        if( token == null )
+        if( id == null )
         {
             return Response.status( Response.Status.BAD_REQUEST ).build();
         }
         
-        String json = extractJSONFromEncryptedToken( token );
-        Map<String, String> map = extractMapFromJSON( json );
+        DumpcapProcess proc = dumpcapDbService.find( UUID.fromString( id ), getPrincipalName() );
         
-        Optional<ProcessHandle> ph = ProcessHandle.of( Long.parseLong( map.get( "pid" ) ) );
-        
-        // Check to make the decrypted path exists, before using the process
-        // id to terminate the process. This ensures that the decryption isn't
-        // simply a random bunch of bytes from a token generated on the client
-        // side.
-        
-        if( map.get( "path" ) != null )
+        if( proc.getPathName() != null )
         {
-            File file = new File( map.get( "path" ) );
+            File file = new File( proc.getPathName() );
             
             if( file.exists() )
             {
-                // Now that we know the path exists, we can assume the decrypted
-                // data is valid, and we can use the PID to terminate the process.
+                Optional<ProcessHandle> ph = ProcessHandle.of( proc.getPid() );
                 
                 ph.ifPresent( handle -> {
                     handle.destroy();
@@ -155,50 +132,68 @@ public class PacketCaptureResource
             }
         }
 
-        return Response.ok( token ).build();
+        return Response.ok().build();
     }
     
-
     @GET
-    @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public Response readCapture( @HeaderParam("token") String token ) throws IOException, InterruptedException, GeneralSecurityException
+    @Produces( MediaType.APPLICATION_JSON )
+    @RolesAllowed("user")
+    @NoCache
+    public Response list()
     {
-        if( token == null )
+        List<DumpcapProcessDto> capture_ids = dumpcapDbService.list( getPrincipalName() );
+        
+        return Response.ok( capture_ids ).build();
+    }
+    
+    @GET
+    @Path("/{id}")
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @RolesAllowed("user")
+    @NoCache
+    public Response readCapture( @PathParam("id") String id ) throws IOException, InterruptedException, GeneralSecurityException
+    {
+        if( id == null )
         {
             return Response.status( Response.Status.BAD_REQUEST ).build();
         }
         
-        String json = extractJSONFromEncryptedToken( token );
-        Map<String, String> map = extractMapFromJSON( json );
+        DumpcapProcess proc = dumpcapDbService.find( UUID.fromString( id ), getPrincipalName() );
         
-        File file = new File( map.get( "path" ) );
-        
-        ResponseBuilder rb;
+        File file = new File( proc.getPathName() );
         
         BufferedInputStream bin = new BufferedInputStream( new FileInputStream( file ) );
         
-        rb = Response.ok( bin );
+        ResponseBuilder rb = Response.ok( bin );
+        
         rb.header( "Content-Disposition", "attachment;filename=capture.pcapng" );
 
         return rb.build();
     }
     
     @DELETE
+    @Path("/{id}")
     @Produces(MediaType.TEXT_PLAIN)
-    public Response deleteCapture( @HeaderParam("token") String token ) throws IOException, GeneralSecurityException
+    @RolesAllowed("user")
+    @NoCache
+    public Response deleteCapture( @PathParam("id") String id ) throws IOException, GeneralSecurityException
     {
-        if( token == null )
+        if( id == null )
         {
             return Response.status( Response.Status.BAD_REQUEST ).build();
         }
         
-        String json = extractJSONFromEncryptedToken( token );
-        Map<String, String> map = extractMapFromJSON( json );
-        File file = new File( map.get( "path" ) );
+        DumpcapProcess proc = dumpcapDbService.find( UUID.fromString( id ), getPrincipalName() );
+        File file = new File( proc.getPathName() );
         
         if( file.exists() ) 
         {
-            file.delete();
+            boolean deleted = file.delete();
+            
+            if( deleted )
+            {
+                dumpcapDbService.deleteDumpcapProcess( UUID.fromString( id ), getPrincipalName() );
+            }
         }
         
         // Following the REST Semantics demand that a DELETE operation
@@ -207,42 +202,11 @@ public class PacketCaptureResource
         return Response.ok().build();
     }
 
-    Map<String, String> extractMapFromJSON( String json ) throws JsonProcessingException
+    private Optional<String> getPrincipalName()
     {
-        ObjectMapper mapper = new ObjectMapper();
-        TypeReference<HashMap<String, String>> typeRef = new TypeReference<HashMap<String, String>>() {};
+        Optional<SecurityIdentity> sidentity = Optional.ofNullable( identity );
         
-        return mapper.readValue( json, typeRef );
-    }
-
-    String extractJSONFromEncryptedToken( String token ) throws IOException, GeneralSecurityException
-    {
-        String[] split_token = token.split( ":" );
-        IvParameterSpec iv = new IvParameterSpec( Base64.getDecoder().decode( split_token[0] ) );
-        SecretKey key = getSecretKey();
-        
-        return CryptoUtils.decrypt( "AES/CBC/PKCS5Padding", split_token[1], key, iv );
-    }
-    
-    SecretKey getSecretKey() throws IOException, GeneralSecurityException
-    {
-        SecretKey key;
-        File keystore_file = new File( keyStorePath );
-        
-        if( ! keystore_file.exists() )
-        {
-            key = CryptoUtils.generateKey( "AES", 256 );
-            KeyStore keystore = CryptoUtils.createOrLoadKeyStore( keyStorePath, keyStorePassword.toCharArray() );
-            CryptoUtils.storeSecretKeyInKeyStore( key, keystore, keyStoreAlias, keyStorePassword.toCharArray() );
-            CryptoUtils.saveKeyStore( keystore, keyStorePassword.toCharArray(), keystore_file );
-        }
-        else
-        {
-            KeyStore keystore = CryptoUtils.createOrLoadKeyStore( keyStorePath, keyStorePassword.toCharArray() );
-            key = CryptoUtils.loadSecretKey( keystore, keyStoreAlias, keyStorePassword.toCharArray() );
-        }
-        
-        return key;
+        return sidentity.map( sid -> sid.getPrincipal() ).map( p -> p.getName() );
     }
     
 }

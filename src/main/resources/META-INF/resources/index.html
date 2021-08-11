@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>dumpcap-ws - 1.0.0-SNAPSHOT</title>
+    <title>dumpcap-ws - 1.0.0</title>
     <style>
         h1, h2, h3, h4, h5, h6 {
             margin-bottom: 0.5rem;
@@ -105,6 +105,18 @@
             font-weight: 200;
         }
     </style>
+    <script src="http://localhost:8180/auth/js/keycloak.js"></script>
+    <script>
+        var keycloak = new Keycloak();
+        keycloak.init({onLoad: 'login-required'}).sucess(function () {
+            console.log('User is now authenticated.');
+        }).error(function () {
+            window.location.reload();
+        });
+        function makeAjaxRequest() {
+            console.log(keycloak.token);
+        }
+    </script>
 </head>
 <body>
 
@@ -113,6 +125,7 @@
 </div>
 
 <div class="container">
+    <button onclick="makeAjaxRequest()">Request</button>
     <div class="left-column">
         <p class="lead"> Congratulations, you have created a new Quarkus cloud application.</p>
 
