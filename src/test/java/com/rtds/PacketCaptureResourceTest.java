@@ -18,12 +18,14 @@
 package com.rtds;
 
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.security.TestSecurity;
 import org.junit.jupiter.api.Test;
 
 import static io.restassured.RestAssured.given;
 import io.restassured.http.ContentType;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.containsString;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.TestMethodOrder;
@@ -33,32 +35,51 @@ import org.junit.jupiter.api.TestMethodOrder;
 public class PacketCaptureResourceTest {
 
     private static String id;
-
+    
     @Test
     @Order(1)
-    public void testStartEndpoint() {
+    @TestSecurity( user="alice", roles = { "user" } )
+    public void testStartEndpoint()
+    {
         id = given()
-                .when().post("/api/v2/capture")
+                .when().post("/api/capture")
                 .then()
                 .statusCode(200)
-                .body(containsString(":"))
+                .body(containsString("-"))
                 .extract().asString();
+        
+        assertNotNull( id );
     }
-
+    
     @Test
     @Order(2)
+    @TestSecurity( user="alice", roles = { "user" } )
     public void testStopEndpoint() {
-        given().param( "id", id )
-                .when().put("/api/v2/capture")
+        given()
+                .pathParam( "id", id )
+                .when().put("/api/capture/{id}")
+                .then()
+                .statusCode(200);
+    }
+    
+    @Test
+    @Order(3)
+    @TestSecurity( user="alice", roles = { "user" } )
+    public void testListEndpoint()
+    {
+        given()
+                .when().get("/api/capture")
                 .then()
                 .statusCode(200);
     }
 
     @Test
-    @Order(3)
+    @Order(4)
+    @TestSecurity( user="alice", roles = { "user" } )
     public void testReadEndpoint() {
-        given().param( "id", id )
-                .when().get("/api/v2/capture")
+        given()
+                .pathParam( "id", id )
+                .when().get("/api/capture/{id}")
                 .then()
                 .header("Content-Disposition", is("attachment;filename=capture.pcapng"))
                 .contentType(ContentType.BINARY)
@@ -66,10 +87,12 @@ public class PacketCaptureResourceTest {
     }
 
     @Test
-    @Order(4)
+    @Order(5)
+    @TestSecurity( user="alice", roles = { "user" } )
     public void testDeleteEndpoint() {
-        given().param( "id", id )
-                .when().delete("/api/v2/capture")
+        given()
+                .pathParam( "id", id )
+                .when().delete("/api/capture/{id}")
                 .then()
                 .statusCode(200);
     }

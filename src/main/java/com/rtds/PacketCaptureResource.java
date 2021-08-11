@@ -17,9 +17,9 @@
 
 package com.rtds;
 
+import com.rtds.dto.DumpcapProcessDto;
 import com.rtds.jpa.DumpcapProcess;
 import com.rtds.svc.DumpcapDbService;
-import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -39,8 +39,7 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.resteasy.annotations.cache.NoCache;
 
-@Path("/api/v2/capture" )
-@Authenticated
+@Path("/api/capture" )
 public class PacketCaptureResource
 {
     @ConfigProperty(name = "startCaptureScript")
@@ -64,7 +63,6 @@ public class PacketCaptureResource
     @POST
     @Produces( MediaType.TEXT_PLAIN )
     @RolesAllowed("user")
-    @NoCache
     public Response startCapture() throws IOException, GeneralSecurityException
     {
         java.nio.file.Path path = java.nio.file.Files.createTempFile( "wireshark-capture-", ".pcapng" );
@@ -106,17 +104,6 @@ public class PacketCaptureResource
         return Response.ok( dbid ).build();
     }
     
-    @GET
-    @Produces( MediaType.APPLICATION_JSON )
-    @RolesAllowed("user")
-    @NoCache
-    public Response list()
-    {
-        List<UUID> capture_ids = dumpcapDbService.list( getPrincipalName() );
-        
-        return Response.ok( capture_ids ).build();
-    }
-    
     @PUT
     @Path("/{id}")
     @Produces( MediaType.TEXT_PLAIN )
@@ -148,7 +135,17 @@ public class PacketCaptureResource
         return Response.ok().build();
     }
     
-
+    @GET
+    @Produces( MediaType.APPLICATION_JSON )
+    @RolesAllowed("user")
+    @NoCache
+    public Response list()
+    {
+        List<DumpcapProcessDto> capture_ids = dumpcapDbService.list( getPrincipalName() );
+        
+        return Response.ok( capture_ids ).build();
+    }
+    
     @GET
     @Path("/{id}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)

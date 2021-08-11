@@ -5,10 +5,12 @@
  */
 package com.rtds.svc;
 
+import com.rtds.dto.DumpcapProcessDto;
 import com.rtds.jpa.DumpcapProcess;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
@@ -74,13 +76,13 @@ public class DumpcapDbService
         return null;
     }
     
-    public List<UUID> list( Optional<String> uid )
+    public List<DumpcapProcessDto> list( Optional<String> uid )
     {
         if( uid.isPresent() )
         {
-            return em.createQuery( "select proc.id from DumpcapProcess proc where proc.uid = :uid", UUID.class ).
+            return em.createQuery( "select proc from DumpcapProcess proc where proc.uid = :uid", DumpcapProcess.class ).
                 setParameter( "uid", uid.get() ).
-                getResultList();
+                getResultList().stream().map( p -> new DumpcapProcessDto( p ) ).collect( Collectors.toList() );
         }
         else
         {
@@ -88,9 +90,10 @@ public class DumpcapDbService
         }
     }
     
-    public List<UUID> listAll()
+    public List<DumpcapProcessDto> listAll()
     {
-        return em.createQuery( "select proc.id from DumpcapProcess proc", UUID.class ).
-                getResultList();
+        return em.createQuery( "select proc from DumpcapProcess proc", DumpcapProcess.class ).
+                getResultList().stream().map( p -> new DumpcapProcessDto( p ) ).collect( Collectors.toList() );
     }
+
 }
