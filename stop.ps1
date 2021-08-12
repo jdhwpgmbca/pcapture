@@ -1,4 +1,4 @@
-$uuid=$args[0]
+$dbid=$args[0]
 
 # Read environment vqriables from the ".env" file - if it exists.
 
@@ -49,4 +49,4 @@ if($ENV:QUARKUS_OIDC_AUTH_SERVER_URL -and $ENV:QUARKUS_OIDC_CREDENTIALS_SECRET) 
 
 Write-Host "Stopping capture..."
 
-http PUT :8080/api/capture/$uuid "Authorization:Bearer $access_token"
+http PUT :8080/api/capture/$dbid "Authorization:Bearer $access_token"
