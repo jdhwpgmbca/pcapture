@@ -26,14 +26,25 @@ if($ENV:QUARKUS_OIDC_AUTH_SERVER_URL -and $ENV:QUARKUS_OIDC_CREDENTIALS_SECRET) 
     # and it's corresponding property quarkus.oidc.auth-server-url is also not set.
 
     try {
-        $port=((docker port (docker ps -f "ancestor=quay.io/keycloak/keycloak:14.0.0" -q) 8080/tcp | Select-Object -First 1).Split(":") | Select-Object -Last 1)
+
+        # Find the last keycloak process in the process list (the first started), then use docker port to get the external bind address, then separate it
+        # into host and port parts, and finally select the port.
+
+        $port=((docker port (docker ps -f "ancestor=quay.io/keycloak/keycloak:14.0.0" -q | Select-Object -Last 1) 8080/tcp | Select-Object -First 1).Split(":") | Select-Object -Last 1)
+
     } catch {
+
+        # If we couldn't get the port, then give the user the opportunity to enter it themselves.
+
         $port = Read-Host "Please enter the Keycloak TCP port"
+
     }
 
     Write-Host "Keycloak docker port is $port"
 
-    $access_token=(http -a backend-service:secret --form POST :$port/auth/realms/quarkus/protocol/openid-connect/token username=alice password='alice' grant_type=password | jq --raw-output '.access_token')
+    # Get the access token using the default credentials.
+
+    $access_token=(http -a backend-service:secret --form POST :$port/auth/realms/quarkus/protocol/openid-connect/token username='alice' password='alice' grant_type=password | jq --raw-output '.access_token')
 
 }
 
