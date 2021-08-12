@@ -40,3 +40,5 @@ nb-configuration.xml
 *.keystore
 *.pcapng
 *.db
+
+.env.disabled
