@@ -45,6 +45,7 @@ public class DumpcapProcessDto
     private Logger logger = LoggerFactory.getLogger( DumpcapProcessDto.class );
 
     private UUID id;
+    private String status;
     private Instant creationTime;
     private Instant lastModifiedTime;
     private Instant lastAccessTime;
@@ -53,6 +54,7 @@ public class DumpcapProcessDto
     public DumpcapProcessDto(DumpcapProcess proc)
     {
         this.id = proc.getId();
+        this.status = proc.getStatus();
 
         Path path = Paths.get(proc.getPathName());
 
@@ -79,6 +81,16 @@ public class DumpcapProcessDto
     public void setId(UUID id)
     {
         this.id = id;
+    }
+
+    public String getStatus()
+    {
+        return status;
+    }
+
+    public void setStatus(String status)
+    {
+        this.status = status;
     }
 
     public Instant getCreationTime()

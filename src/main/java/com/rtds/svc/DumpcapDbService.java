@@ -27,12 +27,13 @@ public class DumpcapDbService
     @Inject
     EntityManager em;
     
-    public UUID createDumpCapProcess( Long pid, String path_name, Optional<String> uid )
+    public UUID createDumpcapProcess( Long pid, String path_name, Optional<String> uid )
     {
         DumpcapProcess proc = new DumpcapProcess();
         
         proc.setPid(pid);
         proc.setPathName(path_name);
+        proc.setStatus( "running" );
         
         if( uid.isPresent() )
         {
@@ -44,6 +45,20 @@ public class DumpcapDbService
         em.refresh( proc );
         
         return proc.getId();
+    }
+    
+    public void stopDumpcapProcess( UUID id, Optional<String> uid )
+    {
+        DumpcapProcess proc = em.find( DumpcapProcess.class, id );
+        
+        if( proc != null && proc.getUid() != null && uid.isPresent() && uid.get().equals( proc.getUid() ) )
+        {
+            proc.setStatus( "stopped" );
+        }
+        else if( proc != null && proc.getUid() == null && uid.isEmpty() )
+        {
+            proc.setStatus( "stopped" );
+        }
     }
     
     public void deleteDumpcapProcess( UUID id, Optional<String> uid )

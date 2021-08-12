@@ -54,9 +54,13 @@ $dbid=(http -b POST :8080/api/capture "Authorization:Bearer $access_token")
 
 Write-Host "Capture ID is $dbid"
 
+Write-Host "Listing captures..."
+
+http -b GET :8080/api/capture "Authorization:Bearer $access_token"
+
 Start-Sleep -s 1.5
 
-Write-Host "Stopping capture..."
+Write-Host "Stopping capture $dbid"
 
 http -q PUT :8080/api/capture/$dbid "Authorization:Bearer $access_token"
 
@@ -66,13 +70,11 @@ Write-Host "Listing captures..."
 
 http -b GET :8080/api/capture "Authorization:Bearer $access_token"
 
-Write-Host "Downloading capture..."
+Write-Host "Downloading capture $dbid"
 
 http -b GET :8080/api/capture/$dbid "Authorization:Bearer $access_token" --download -o capture.pcapng
 
-Start-Sleep -s 1.5
-
-Write-Host "Deleting capture..."
+Write-Host "Deleting capture $dbid"
 
 http -q DELETE :8080/api/capture/$dbid "Authorization:Bearer $access_token"
 

@@ -42,6 +42,7 @@ public class DumpcapProcess implements Serializable
     private Long pid;
     private String pathName;
     private String uid;
+    private String status;
 
     public UUID getId()
     {
@@ -81,6 +82,16 @@ public class DumpcapProcess implements Serializable
     public void setUid(String uid)
     {
         this.uid = uid;
+    }
+
+    public String getStatus()
+    {
+        return status;
+    }
+
+    public void setStatus(String status)
+    {
+        this.status = status;
     }
 
 }

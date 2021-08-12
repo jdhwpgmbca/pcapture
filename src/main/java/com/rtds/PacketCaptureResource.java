@@ -99,7 +99,7 @@ public class PacketCaptureResource
         // the database. This will be used later to lookup the process ID, and
         // to remove the capture file.
         
-        UUID dbid = dumpcapDbService.createDumpCapProcess( pid, path.toString(), getPrincipalName() );
+        UUID dbid = dumpcapDbService.createDumpcapProcess( pid, path.toString(), getPrincipalName() );
         
         return Response.ok( dbid ).build();
     }
@@ -128,6 +128,7 @@ public class PacketCaptureResource
                 
                 ph.ifPresent( handle -> {
                     handle.destroy();
+                    dumpcapDbService.stopDumpcapProcess( UUID.fromString( id ), getPrincipalName() );
                 } );
             }
         }
