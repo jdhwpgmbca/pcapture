@@ -1,189 +1,181 @@
-<!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>dumpcap-ws - 1.0.0</title>
+    <title>keycloak-spa</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="${auth.server.url}/auth/js/keycloak.js"></script>
     <style>
-        h1, h2, h3, h4, h5, h6 {
-            margin-bottom: 0.5rem;
-            font-weight: 400;
-            line-height: 1.5;
-        }
-
-        h1 {
-            font-size: 2.5rem;
-        }
-
-        h2 {
-            font-size: 2rem
-        }
-
-        h3 {
-            font-size: 1.75rem
-
-        }
-
-        h4 {
-            font-size: 1.5rem
-        }
-
-        h5 {
-            font-size: 1.25rem
-        }
-
-        h6 {
-            font-size: 1rem
-        }
-
-        .lead {
-            font-weight: 300;
-            font-size: 2rem;
-        }
-
-        .banner {
-            font-size: 2.7rem;
-            margin: 0;
-            padding: 2rem 1rem;
-            background-color: #0d1c2c;
-            color: white;
-        }
-
-        body {
-            margin: 0;
-            font-family: -apple-system, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-        }
-
-        code {
-            font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-            font-size: 87.5%;
-            color: #e83e8c;
-            word-break: break-word;
-        }
-
-        .left-column {
-            padding: .75rem;
-            max-width: 75%;
-            min-width: 55%;
-        }
-
-        .right-column {
-            padding: .75rem;
-            max-width: 25%;
-        }
-
-        .container {
-            display: flex;
-            width: 100%;
-        }
-
-        li {
-            margin: 0.75rem;
-        }
-
-        .right-section {
-            margin-left: 1rem;
-            padding-left: 0.5rem;
-        }
-
-        .right-section h3 {
-            padding-top: 0;
-            font-weight: 200;
-        }
-
-        .right-section ul {
-            border-left: 0.3rem solid #71aeef;
-            list-style-type: none;
-            padding-left: 0;
-        }
-
-        .provided-code {
-            border-left: 0.3rem solid #71aeef;
-            padding-left: 10px;
-        }
-
-        .provided-code h3 {
-            font-weight: 200;
+        table, th, td {
+            border: 1px solid black;
+            padding: 5px;
         }
     </style>
-    <script src="http://localhost:8180/auth/js/keycloak.js"></script>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5/jquery.min.js"></script>
     <script>
         var keycloak = new Keycloak();
-        keycloak.init({onLoad: 'login-required'}).sucess(function () {
+        keycloak.init({onLoad: 'login-required'}).then(function () {
             console.log('User is now authenticated.');
-        }).error(function () {
+            listCaptures();
+        }).catch(function () {
             window.location.reload();
         });
-        function makeAjaxRequest() {
-            console.log(keycloak.token);
+        function logout() {
+            keycloak.logout();
         }
+        setInterval( () => {
+            listCaptures();
+        }, 2000 );
+        function generateTableHead(table, data) {
+            let thead = table.createTHead();
+            let row = thead.insertRow();
+            for (let key of Object.keys(data[0])) {
+
+                let th = document.createElement('th');
+                let text = document.createTextNode(key);
+                th.appendChild(text);
+                row.appendChild(th);
+            }
+        }
+        function generateTable(table, data) {
+            for (let element of data) {
+                let row = table.insertRow();
+                for (key in element) {
+                    let cell = row.insertCell();
+                    if (key == 'length') {
+                        let div = document.createElement('div');
+                        let text = document.createTextNode(element[key]);
+                        div.appendChild(text);
+                        cell.appendChild(div);
+                    } else {
+                        let text = document.createTextNode(element[key]);
+                        cell.appendChild(text);
+                    }
+                }
+
+                let id = element['id'];
+
+                let downloadCell = row.insertCell();
+                let downloadBtn = document.createElement('button');
+                downloadBtn.setAttribute("type", "button") ;
+                downloadBtn.innerHTML = "Download";
+                downloadBtn.setAttribute( "onclick", "downloadCapture('" + id + "')"); 
+                downloadCell.appendChild(downloadBtn);
+
+                let stopCell = row.insertCell();
+                let stopBtn = document.createElement('button');
+                stopBtn.setAttribute('type','button');
+                stopBtn.innerHTML = "Stop";
+                stopBtn.setAttribute( "onclick", "stopCapture('" + id + "')"); 
+                stopCell.appendChild(stopBtn);
+
+                let deleteCell = row.insertCell();
+                let deleteBtn = document.createElement('button');
+                deleteBtn.setAttribute('type','button');
+                deleteBtn.innerHTML = "Delete";
+                deleteBtn.setAttribute('onclick',"deleteCapture('" + id + "')");
+                deleteCell.appendChild(deleteBtn);
+            }
+        }
+        function listCaptures() {
+            axios({
+                method: 'get',
+                url: '/api/capture',
+                headers: {
+                    'Authorization': 'Bearer ' + keycloak.token
+                }
+            })
+            .then( response => {
+                const mytable = document.querySelector('table');
+                mytable.innerHTML = '';
+                generateTableHead(mytable,response.data);
+                generateTable(mytable,response.data);
+            })
+            .catch( error => {
+                console.log('refreshing');
+                keycloak.updateToken(5).then( () => {
+                    console.log('Token refreshed');
+                }).catch( () => {
+                    console.log('Failed to refresh token');
+                    window.location.reload();
+                });
+            });
+    }
+    function startCapture() {
+        axios({
+            method: 'post',
+            url: '/api/capture',
+            headers: {
+                'Authorization': 'Bearer ' + keycloak.token
+            }
+        })
+        .then( response => {
+            console.log( "New capture started!", response );
+            listCaptures();
+        })
+        .catch( (error) => console.log( error ) );
+    }
+    function stopCapture(id) {
+        axios({
+            method: 'put',
+            url: "/api/capture/" + id,
+            headers: {
+                'Authorization': 'Bearer ' + keycloak.token
+            }
+        })
+        .then( response => {
+
+            console.log('Stopped!');
+            listCaptures();
+            // window.location.reload();
+
+        })
+        .catch( (error) => console.log(error) )
+    }
+    function downloadCapture(id) {
+        axios({
+            method: 'get',
+            url: '/api/capture/' + id,
+            headers: {
+                'Authorization': 'Bearer ' + keycloak.token,
+                'Accept': 'application/octet-stream'
+            },
+            responseType: 'blob'
+        })
+        .then( response => {
+
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download','capture.pcapng');
+            document.body.appendChild(link);
+            link.click();
+
+        })
+        .catch( error => console.log( error ) );
+    }
+    function deleteCapture(id) {
+        axios({
+            method: 'delete',
+            url: '/api/capture/' + id,
+            headers: {
+                'Authorization': 'Bearer ' + keycloak.token
+            }
+        })
+        .then( response => {
+
+            console.log('Deleted!');
+            listCaptures();
+
+        })
+        .catch( error => console.log(error) )
+    }
     </script>
 </head>
 <body>
+    <button onclick="listCaptures()">List Captures</button>
+    <button onclick="startCapture()">Start Capture</button>
+    <button onclick="logout()">Logout</button>
+    <table id="mytable" style="padding: 1em;">
 
-<div class="banner lead">
-    Your new Cloud-Native application is ready!
-</div>
-
-<div class="container">
-    <button onclick="makeAjaxRequest()">Request</button>
-    <div class="left-column">
-        <p class="lead"> Congratulations, you have created a new Quarkus cloud application.</p>
-
-        <h2>What is this page?</h2>
-
-        <p>This page is served by Quarkus. The source is in
-            <code>src/main/resources/META-INF/resources/index.html</code>.</p>
-
-        <h2>What are your next steps?</h2>
-
-        <p>If not already done, run the application in <em>dev mode</em> using: <code>./mvnw compile quarkus:dev</code>.
-        </p>
-        <ul>
-            <li>Your static assets are located in <code>src/main/resources/META-INF/resources</code>.</li>
-            <li>Configure your application in <code>src/main/resources/application.properties</code>.</li>
-            <li>Quarkus now ships with a <a href="/q/dev/">Dev UI</a> (available in dev mode only)</li>
-            <li>Play with the provided code located in <code>src/main/java</code>:</li>
-        </ul>
-                <div class="provided-code">
-            <h3>RESTEasy JAX-RS</h3>
-            <p>Easily start your RESTful Web Services</p>
-            <p><code>@Path: <a href="/hello" class="path-link" target="_blank">/hello</a></code></p>
-            <p><a href="https://quarkus.io/guides/getting-started#the-jax-rs-resources" class="guide-link" target="_blank">Related guide section...</a></p>
-        </div>
-
-    </div>
-    <div class="right-column">
-        <div class="right-section">
-            <h3>Application</h3>
-            <ul>
-                <li>GroupId: <code>com.rtds</code></li>
-                <li>ArtifactId: <code>dumpcap-ws</code></li>
-                <li>Version: <code>1.0.0-SNAPSHOT</code></li>
-                <li>Quarkus Version: <code>2.1.0.Final</code></li>
-            </ul>
-        </div>
-        <div class="right-section">
-            <h3>Do you like Quarkus?</h3>
-            <ul>
-                <li>Go give it a star on <a href="https://github.com/quarkusio/quarkus">GitHub</a>.</li>
-            </ul>
-        </div>
-        <div class="right-section">
-            <h3>Selected extensions guides</h3>
-            <ul>
-                <li title="REST endpoint framework implementing JAX-RS and more"><a href="https://quarkus.io/guides/rest-json" target="_blank">RESTEasy JAX-RS guide</a></li>
-            </ul>
-        </div>
-        <div class="right-section">
-            <h3>More reading</h3>
-            <ul>
-                <li><a href="https://quarkus.io/guides/maven-tooling.html" target="_blank">Setup your IDE</a></li>
-                <li><a href="https://quarkus.io/guides/getting-started.html" target="_blank">Getting started</a></li>
-                <li><a href="https://quarkus.io/guides/" target="_blank">All guides</a></li>
-                <li><a href="https://quarkus.io" target="_blank">Quarkus Web Site</a></li>
-            </ul>
-        </div>
-    </div>
-</div>
+    </table>
 </body>
 </html>

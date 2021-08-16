@@ -1,0 +1,8 @@
+{
+  "realm": "quarkus",
+  "auth-server-url": "${auth.server.url}/auth/",
+  "ssl-required": "external",
+  "resource": "frontend-client",
+  "public-client": true,
+  "confidential-port": 0
+}

@@ -86,6 +86,8 @@
           <exclude>**/*.js</exclude>
           <exclude>**/*.ini</exclude>
           <exclude>**/*.yml</exclude>
+          <exclude>**/*.json</exclude>
+          <exclude>**/*.html</exclude>
         </excludes>
       </resource>
       <resource>
@@ -98,6 +100,8 @@
           <include>**/*.js</include>
           <include>**/*.ini</include>
           <include>**/*.yml</include>
+          <include>**/*.json</include>
+          <include>**/*.html</include>
         </includes>
       </resource>
     </resources>
@@ -163,6 +167,15 @@
     </plugins>
   </build>
   <profiles>
+    <profile>
+        <id>production</id>
+        <activation>
+            <activeByDefault>true</activeByDefault>
+        </activation>
+        <properties>
+            <auth.server.url>http://localhost:8180</auth.server.url>
+        </properties>
+    </profile>
     <profile>
       <id>native</id>
       <activation>
