@@ -17,6 +17,7 @@
     <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
     <quarkus.platform.version>2.1.1.Final</quarkus.platform.version>
     <surefire-plugin.version>3.0.0-M5</surefire-plugin.version>
+    <auth.server.url>https://your.keycloak.server</auth.server.url>
   </properties>
   <dependencyManagement>
     <dependencies>
@@ -167,15 +168,6 @@
     </plugins>
   </build>
   <profiles>
-    <profile>
-        <id>production</id>
-        <activation>
-            <activeByDefault>true</activeByDefault>
-        </activation>
-        <properties>
-            <auth.server.url>http://localhost:8180</auth.server.url>
-        </properties>
-    </profile>
     <profile>
       <id>native</id>
       <activation>

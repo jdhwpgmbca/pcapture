@@ -14,7 +14,7 @@ If you want to learn more about Quarkus, please visit its website: https://quark
 
 - At this point the web service must tie in with a an OpenID-connect authentication server like Keycloak.
 - There is now a rudimentary web-based user interface that allows you to start/stop/download/delete captures.
-- I suggest that you create a settings.xml file in your maven $HOME/.m2 directory to store the ${auth.server.url} property which should point to your keycloak server.
+- I suggest that you create a settings.xml file in your maven $HOME/.m2 directory to store the ${auth.server.url} property which should point to your keycloak server. See below for a sample.
 - I also suggest you create a .env file in the top level project directory.
 - I suggest cloning the PacketCaptureResource class to something like SvPacketCaptureResource, GoosePacketCaptureResource, GsePacketCaptureResource, and changing the @Path annotations on them to keep them all unique. You could also customize the startCaptureScript.ps1 to also pass in the capture filter strings as arguments, and have each class use a different capture filter.
 
@@ -29,12 +29,15 @@ you'll more than likely want to change this to "none" instead once you have your
 
 QUARKUS_OIDC_AUTH_SERVER_URL=https://your.keycloak.server/auth/realms/quarkus
 QUARKUS_OIDC_CLIENT_ID=backend-service
-QUARKUS_OIDC_CREDENTIALS_SECRET=your-keycloak-client-credentials
+QUARKUS_OIDC_CREDENTIALS_SECRET=your-keycloak-client-credentials   (This must match Keycloak (logged in as admin) -> Quarkus Realm -> Clients -> Backend-service -> Credentials -> Secret. For security you should regenerate the secret.)
 QUARKUS_OIDC_TLS_VERIFICATION=required
+QUARKUS_HIBERNATE_ORM_DATABASE_GENERATION=none
 
 # The web client front-end configuration (src/main/resources/META-INF/resources)
 
-The ${auth.server.url} property gets replaced in this file, and index.html by maven at build time if you have the property configured in $HOME/.m2/settings.xml.
+You'll need to login to your Keycloak server as a user with the admin role and switch to the Quarkus realm. The Keycloak server that's run by quarkus:dev uses "admin" as a username, and "admin" as the password. Once you're logged in, create a new client called frontend-client using openid-connect as the client protocol. In the "Valid Redirect URIs" field, type "http://localhost:8080/*", or whatever your web service URL is running under. This tells the Keycloak server that it's okay to redirect the user back to "http://localhost:8080/*" after successful authentication. This is very important for security that it match the web client URL.
+
+The "Installation" section under each client in Keycloak allows you to generate various client configurations. The proper one for this application would be to select "Keycloak OIDC JSON". The file below is what I have placed in the src/main/resources/META-INF/resources folder:
 
 ```json
 {
@@ -47,6 +50,9 @@ The ${auth.server.url} property gets replaced in this file, and index.html by ma
 }
 ```
 
+The generated version from Keycloak should be pretty close to this, but it will have a hard-coded value for auth-server-url. I've replaced that with a ${auth.server.url} variable that gets replaced by maven during the compile phase.
+The $HOME/.m2/settings.xml file is the recommended way to override this setting. Here's an example:
+
 ```xml
 <settings 
     xmlns="http://maven.apache.org/SETTINGS/1.2.0"
@@ -54,25 +60,23 @@ The ${auth.server.url} property gets replaced in this file, and index.html by ma
     xmlns:schemaLocation="http://maven.apache.org/SETTINGS/1.2.0 http://maven.apache.org/xsd/settings-1.2.0.xsd"
 >
 
-<profiles>
-    <profile>
-        <id>development</id>
-        <properties>
-            <auth.server.url>https://your.development.keycloak.server</auth.server.url>
-        </properties>
-    </profile>
-    <profile>
-        <id>production</id>
-        <properties>
-            <auth.server.url>https://your.production.keycloak.server</auth.server.url>
-        </properties>
-    </profile>
-</profiles>
+    <profiles>
+        <profile>
+            <id>keycloak</id>
+            <properties>
+                <auth.server.url>https://your.keycloak.server</auth.server.url>
+            </properties>
+        </profile>
+    </profiles>
+
+    <activeProfiles>
+        <activeProfile>keycloak</activeProfile>
+    </activeProfiles>
 
 </settings>
 ```
 
-If you have a $HOME/.m2/settings.xml file like the one above, using .\mvnw clean compile quarkus:dev -Pdevelop (or -Pproduction) will perform the proper ${auth.server.url} substitutions so the web client will work.
+You'll of course want to change the value of "https://your.keycloak.server" to whatever your Keycloak server URL is.
 
 ## Authentication and Authorization
 

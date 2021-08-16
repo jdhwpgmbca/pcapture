@@ -34,6 +34,11 @@
                 th.appendChild(text);
                 row.appendChild(th);
             }
+            let th = document.createElement('th');
+            th.setAttribute('colspan',"3");
+            let text = document.createTextNode('Controls');
+            th.appendChild(text);
+            row.appendChild(th);
         }
         function generateTable(table, data) {
             for (let element of data) {
