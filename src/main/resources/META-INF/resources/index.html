@@ -45,7 +45,12 @@
                 let row = table.insertRow();
                 for (key in element) {
                     let cell = row.insertCell();
-                    if (key == 'length') {
+                    if (key == 'creationTime' || key == 'lastModifiedTime') {
+                        let date = new Date(element[key]);
+                        var options = { weekday: undefined, year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric' };
+                        let text = document.createTextNode( date.toLocaleDateString() + ' ' + date.toLocaleTimeString() );
+                        cell.appendChild(text);
+                    } else if (key == 'length') {
                         let div = document.createElement('div');
                         let text = document.createTextNode(element[key]);
                         div.appendChild(text);
