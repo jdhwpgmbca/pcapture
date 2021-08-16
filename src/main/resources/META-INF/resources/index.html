@@ -14,17 +14,17 @@
         var keycloak = new Keycloak();
         keycloak.init({onLoad: 'login-required'}).then(function () {
             console.log('User is now authenticated.');
-            listCaptures();
+            setInterval( () => {
+                listCaptures();
+            }, 2000 );
         }).catch(function () {
             window.location.reload();
         });
         function logout() {
             keycloak.logout();
         }
-        setInterval( () => {
-            listCaptures();
-        }, 2000 );
         function generateTableHead(table, data) {
+            if (data == null) return;
             let thead = table.createTHead();
             let row = thead.insertRow();
             for (let key of Object.keys(data[0])) {
@@ -171,7 +171,6 @@
     </script>
 </head>
 <body>
-    <button onclick="listCaptures()">List Captures</button>
     <button onclick="startCapture()">Start Capture</button>
     <button onclick="logout()">Logout</button>
     <table id="mytable" style="padding: 1em;">
