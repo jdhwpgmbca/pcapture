@@ -12,14 +12,70 @@ If you want to learn more about Quarkus, please visit its website: https://quark
 
 ## Status and Future Directions
 
-- At this point the web service must tie in with a an OpenID-connect authentication server like Keycloak. There is no client front-end at this point. So the next steps would probably be to develop a single page application that uses JavaScript to fetch the authorization token and use the various REST functions to start/stop/download/delete captures. 
+- At this point the web service must tie in with a an OpenID-connect authentication server like Keycloak.
+- There is now a rudimentary web-based user interface that allows you to start/stop/download/delete captures.
+- I suggest that you create a settings.xml file in your maven $HOME/.m2 directory to store the ${auth.server.url} property which should point to your keycloak server.
+- I also suggest you create a .env file in the top level project directory.
 - I suggest cloning the PacketCaptureResource class to something like SvPacketCaptureResource, GoosePacketCaptureResource, GsePacketCaptureResource, and changing the @Path annotations on them to keep them all unique. You could also customize the startCaptureScript.ps1 to also pass in the capture filter strings as arguments, and have each class use a different capture filter.
+
+## The .env File (stored in your project's top level folder)
+
+(This file configures the back-end web service, it doesn't affect the web client.)
+
+QUARKUS_OIDC_AUTH_SERVER_URL=https://your.keycloak.server/auth/realms/quarkus
+QUARKUS_OIDC_CLIENT_ID=backend-service
+QUARKUS_OIDC_CREDENTIALS_SECRET=your-keycloak-client-credentials
+QUARKUS_OIDC_TLS_VERIFICATION=required
+
+# The web client front-end configuration (src/main/resources/META-INF/resources)
+
+The ${auth.server.url} property gets replaced in this file, and index.html by maven at build time if you have the property configured in $HOME/.m2/settings.xml.
+
+```json
+{
+  "realm": "quarkus",
+  "auth-server-url": "${auth.server.url}/auth/",
+  "ssl-required": "external",
+  "resource": "frontend-client",
+  "public-client": true,
+  "confidential-port": 0
+}
+```
+
+```xml
+<settings 
+    xmlns="http://maven.apache.org/SETTINGS/1.2.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:schemaLocation="http://maven.apache.org/SETTINGS/1.2.0 http://maven.apache.org/xsd/settings-1.2.0.xsd"
+>
+
+<profiles>
+    <profile>
+        <id>development</id>
+        <properties>
+            <auth.server.url>https://your.development.keycloak.server</auth.server.url>
+        </properties>
+    </profile>
+    <profile>
+        <id>production</id>
+        <properties>
+            <auth.server.url>https://your.production.keycloak.server</auth.server.url>
+        </properties>
+    </profile>
+</profiles>
+
+</settings>
+```
+
+If you have a $HOME/.m2/settings.xml file like the one above, using .\mvnw clean compile quarkus:dev -Pdevelop (or -Pproduction) will perform the proper ${auth.server.url} substitutions so the web client will work.
 
 ## Authentication and Authorization
 
 The application is now fully integrated with authorization servers supporting the Open-ID Connect standard (OIDC for short).
 If you're running docker on your development workstation, all you need to do is run quarkus:dev. It will run a keycloak
-server in the background, that's fully provisioned and setup for testing.
+server in the background, that's fully provisioned and setup for testing. Be warned, the web client doesn't work with this
+unless you manually edit the web client configuration file (keycloak.json), and the index.html file to point to the keycloak
+server. It may be easier to run keycloak from docker manually, and import the realm file below if you want to use the web client.
 
 If you wish to setup a standalone keycloak server, you can import this realm as a quick-start:
 
@@ -32,7 +88,7 @@ regenerated.
 ### Testing
 
 - The program can be tested with .\mvnw clean compile test, or you can run .\mvnw clean compile quarkus:dev and press <o> to show the test output, followed by <r> to run the tests.
-- An alternative way of testing that involves the Keycloak (OIDC) server is to run the test_access.ps1 script.
+- An alternative way of testing that involves the Keycloak (OIDC) server is to run the test_access.ps1 script. There are now also separate scripts to start/stop/download and delete.
 
 (Install the jq JSON query client using one of the preferred methods. I used the chocolatey package manager to install mine.)
 
