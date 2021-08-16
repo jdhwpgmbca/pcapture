@@ -18,6 +18,11 @@ If you want to learn more about Quarkus, please visit its website: https://quark
 - I also suggest you create a .env file in the top level project directory.
 - I suggest cloning the PacketCaptureResource class to something like SvPacketCaptureResource, GoosePacketCaptureResource, GsePacketCaptureResource, and changing the @Path annotations on them to keep them all unique. You could also customize the startCaptureScript.ps1 to also pass in the capture filter strings as arguments, and have each class use a different capture filter.
 
+## Database Configuration
+
+The src/main/resources/application.properties file contains a value called quarkus.hibernate-orm.database.generation which is set to drop-and-create. This is a useful development setting that drops the database on every startup. However,
+you'll more than likely want to change this to "none" instead once you have your database up and going, otherwise you'll have inconsistencies between what's been captured and what's listed in the database.
+
 ## The .env File (stored in your project's top level folder)
 
 (This file configures the back-end web service, it doesn't affect the web client.)
@@ -101,7 +106,7 @@ Using the HttPie client to get an access token from the test keycloak server:
 
 You can run your application in dev mode that enables live coding using:
 ```shell script
-./mvnw clean compile quarkus:dev
+./mvnw clean compile quarkus:dev -Pdevelopment
 ```
 
 > **_NOTE:_**  Quarkus now ships with a Dev UI, which is available in dev mode only at http://localhost:8080/q/dev/.
