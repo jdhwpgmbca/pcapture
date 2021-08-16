@@ -48,7 +48,6 @@ public class DumpcapProcessDto
     private String status;
     private Instant creationTime;
     private Instant lastModifiedTime;
-    private Instant lastAccessTime;
     private Long length;
 
     public DumpcapProcessDto(DumpcapProcess proc)
@@ -64,7 +63,6 @@ public class DumpcapProcessDto
 
             this.creationTime = attr.creationTime().toInstant();
             this.lastModifiedTime = attr.lastModifiedTime().toInstant();
-            this.lastAccessTime = attr.lastAccessTime().toInstant();
             this.length = attr.size();
         }
         catch( IOException ex )
@@ -111,16 +109,6 @@ public class DumpcapProcessDto
     public void setLastModifiedTime( Instant lastModifiedTime )
     {
         this.lastModifiedTime = lastModifiedTime;
-    }
-
-    public Instant getLastAccessTime()
-    {
-        return lastAccessTime;
-    }
-
-    public void setLastAccessTime( Instant lastAccessTime )
-    {
-        this.lastAccessTime = lastAccessTime;
     }
 
     public Long getLength()
