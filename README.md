@@ -53,9 +53,9 @@ as possible (so don't use * by itself for instance).
 
 You'll need to login to your Keycloak server as a user with the admin role and switch to the Quarkus realm. The Keycloak server
 that's run by quarkus:dev uses "admin" as a username, and "admin" as the password. Once you're logged in, create a new client
-called frontend-client using openid-connect as the client protocol. In the "Valid Redirect URIs" field, type "http://localhost:8080/*",
+called frontend-client using openid-connect as the client protocol. In the "Valid Redirect URIs" field, type `"http://localhost:8080/*"`,
 or whatever your web service URL is running under. This tells the Keycloak server that it's okay to redirect the user back to
-"http://localhost:8080/*" after successful authentication. This is very important for security that it match the web client URL.
+`"http://localhost:8080/*"` after successful authentication. This is very important for security that it match the web client URL.
 
 The "Installation" section under each client in Keycloak allows you to generate various client configurations. The proper one for
 this application would be to select "Keycloak OIDC JSON". The file below is what I have placed in the src/main/resources/META-INF/resources
