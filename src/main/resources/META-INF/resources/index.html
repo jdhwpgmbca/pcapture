@@ -101,11 +101,11 @@
             })
             .catch( error => {
                 if (error.response) {
-                    console.log('refreshing');
+                    console.log('Refreshing authorization token');
                     keycloak.updateToken(5).then( () => {
                         console.log('Token refreshed');
                     }).catch( () => {
-                        console.log('Failed to refresh token');
+                        console.log('Failed to refresh authorization token, reloading window.');
                         window.location.reload();
                     });
                 } else if (error.request) {
