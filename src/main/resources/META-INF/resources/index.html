@@ -2,7 +2,7 @@
 <head>
     <title>keycloak-spa</title>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <script src="${auth.server.url}/auth/js/keycloak.js"></script>
+    <script src="https://keycloak.rtds.com/auth/js/keycloak.js"></script>
     <style>
         table, th, td {
             padding: 5px;
@@ -109,10 +109,10 @@
                 });
             });
     }
-    function startCapture() {
+    function startCapture(type) {
         axios({
             method: 'post',
-            url: '/api/capture',
+            url: '/api/capture/' + type,
             headers: {
                 'Authorization': 'Bearer ' + keycloak.token
             }
@@ -181,7 +181,10 @@
     </script>
 </head>
 <body>
-    <button onclick="startCapture()">Start Capture</button>
+    <button onclick="startCapture('all')">Start Generic Capture</button>
+    <button onclick="startCapture('goose')">Start Goose Capture</button>
+    <button onclick="startCapture('gse')">Start GSE Capture</button>
+    <button onclick="startCapture('sv')">Start SV Capture</button>
     <button onclick="logout()">Logout</button>
     <table id="mytable" style="padding: 1em;">
 

@@ -42,7 +42,7 @@ public class PacketCaptureResourceTest {
     public void testStartEndpoint()
     {
         id = given()
-                .when().post("/api/capture")
+                .when().post("/api/capture/all")
                 .then()
                 .statusCode(200)
                 .body(containsString("-"))
@@ -90,6 +90,117 @@ public class PacketCaptureResourceTest {
     @Order(5)
     @TestSecurity( user="alice", roles = { "user" } )
     public void testDeleteEndpoint() {
+        given()
+                .pathParam( "id", id )
+                .when().delete("/api/capture/{id}")
+                .then()
+                .statusCode(200);
+    }
+
+    @Test
+    @Order(6)
+    @TestSecurity( user="alice", roles = { "user" } )
+    public void testStartGooseEndpoint()
+    {
+        id = given()
+                .when().post("/api/capture/goose")
+                .then()
+                .statusCode(200)
+                .body(containsString("-"))
+                .extract().asString();
+        
+        assertNotNull( id );
+    }
+    
+    @Test
+    @Order(7)
+    @TestSecurity( user="alice", roles = { "user" } )
+    public void testStopEndpoint2() {
+        given()
+                .pathParam( "id", id )
+                .when().put("/api/capture/{id}")
+                .then()
+                .statusCode(200);
+    }
+    
+    @Test
+    @Order(8)
+    @TestSecurity( user="alice", roles = { "user" } )
+    public void testDeleteEndpoint2() {
+        given()
+                .pathParam( "id", id )
+                .when().delete("/api/capture/{id}")
+                .then()
+                .statusCode(200);
+    }
+
+    @Test
+    @Order(9)
+    @TestSecurity( user="alice", roles = { "user" } )
+    public void testStartGSEEndpoint()
+    {
+        id = given()
+                .when().post("/api/capture/gse")
+                .then()
+                .statusCode(200)
+                .body(containsString("-"))
+                .extract().asString();
+        
+        assertNotNull( id );
+    }
+    
+    @Test
+    @Order(10)
+    @TestSecurity( user="alice", roles = { "user" } )
+    public void testStopEndpoint3() {
+        given()
+                .pathParam( "id", id )
+                .when().put("/api/capture/{id}")
+                .then()
+                .statusCode(200);
+    }
+    
+    @Test
+    @Order(11)
+    @TestSecurity( user="alice", roles = { "user" } )
+    public void testDeleteEndpoint3() {
+        given()
+                .pathParam( "id", id )
+                .when().delete("/api/capture/{id}")
+                .then()
+                .statusCode(200);
+    }
+
+    @Test
+    @Order(12)
+    @TestSecurity( user="alice", roles = { "user" } )
+    public void testStartSVEndpoint()
+    {
+        id = given()
+                .when().post("/api/capture/sv")
+                .then()
+                .statusCode(200)
+                .body(containsString("-"))
+                .extract().asString();
+        
+        assertNotNull( id );
+    }
+    
+    @Test
+    @Order(13)
+    @TestSecurity( user="alice", roles = { "user" } )
+    public void testStopEndpoint4() {
+        given()
+                .pathParam( "id", id )
+                .when().put("/api/capture/{id}")
+                .then()
+                .statusCode(200);
+    }
+    
+    @Test
+    @Order(14)
+    @TestSecurity( user="alice", roles = { "user" } )
+    public void testDeleteEndpoint4() {
         given()
                 .pathParam( "id", id )
                 .when().delete("/api/capture/{id}")

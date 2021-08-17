@@ -1,4 +1,5 @@
-$param1=$args[0]
+$filter=$args[0]
+$out=$args[1]
 $env:Path+= ";C:\Program Files\Wireshark"
 
 # Start the dumpcap program in another window, writing the PID to the standard output.
@@ -7,4 +8,9 @@ $env:Path+= ";C:\Program Files\Wireshark"
 # You'll also likely need to rename vEthernetBridge to whatever network interface you're using on Windows. It's likely that you'll have several if you're
 # using Docker or HyperV.
 
-(Start-Process -FilePath "dumpcap.exe" -ArgumentList "-i vEthernetBridge -w $param1" -PassThru).Id
+if ($($args.Count) -eq 2) {
+    (Start-Process -FilePath "dumpcap.exe" -ArgumentList "-i", "vEthernetBridge", "-f", "`"$filter`"", "-w", "$out" -PassThru).Id
+} else {
+    $out=$args[0]
+    (Start-Process -FilePath "dumpcap.exe" -ArgumentList "-i", "vEthernetBridge", "-w", "$out" -PassThru).Id
+}

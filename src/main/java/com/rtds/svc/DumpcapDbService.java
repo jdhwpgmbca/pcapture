@@ -27,13 +27,14 @@ public class DumpcapDbService
     @Inject
     EntityManager em;
     
-    public UUID createDumpcapProcess( Long pid, String path_name, Optional<String> uid )
+    public UUID createDumpcapProcess( Long pid, String path_name, String type, Optional<String> uid )
     {
         DumpcapProcess proc = new DumpcapProcess();
         
         proc.setPid(pid);
         proc.setPathName(path_name);
         proc.setStatus( "running" );
+        proc.setType( type );
         
         if( uid.isPresent() )
         {

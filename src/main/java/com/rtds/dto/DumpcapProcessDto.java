@@ -45,6 +45,7 @@ public class DumpcapProcessDto
     private Logger logger = LoggerFactory.getLogger( DumpcapProcessDto.class );
 
     private UUID id;
+    private String type;
     private String status;
     private Instant creationTime;
     private Instant lastModifiedTime;
@@ -54,6 +55,7 @@ public class DumpcapProcessDto
     {
         this.id = proc.getId();
         this.status = proc.getStatus();
+        this.type = proc.getType();
 
         Path path = Paths.get(proc.getPathName());
 
@@ -79,6 +81,16 @@ public class DumpcapProcessDto
     public void setId(UUID id)
     {
         this.id = id;
+    }
+
+    public String getType()
+    {
+        return type;
+    }
+
+    public void setType( String type )
+    {
+        this.type = type;
     }
 
     public String getStatus()
@@ -116,7 +128,7 @@ public class DumpcapProcessDto
         return length;
     }
 
-    public void setLength(Long length)
+    public void setLength( Long length )
     {
         this.length = length;
     }

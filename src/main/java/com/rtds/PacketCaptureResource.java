@@ -61,9 +61,42 @@ public class PacketCaptureResource
     SecurityIdentity identity;
     
     @POST
+    @Path("/all")
     @Produces( MediaType.TEXT_PLAIN )
     @RolesAllowed("user")
-    public Response startCapture() throws IOException, GeneralSecurityException
+    public Response startGenericCapture() throws IOException, GeneralSecurityException
+    {
+        return startCapture( null, "All" );
+    }
+    
+    @POST
+    @Path("/goose")
+    @Produces( MediaType.TEXT_PLAIN )
+    @RolesAllowed("user")
+    public Response startGooseCapture() throws IOException, GeneralSecurityException
+    {
+        return startCapture( "'ether proto 0x99B8'", "Goose" );
+    }
+    
+    @POST
+    @Path("/gse")
+    @Produces( MediaType.TEXT_PLAIN )
+    @RolesAllowed("user")
+    public Response startGSECapture() throws IOException, GeneralSecurityException
+    {
+        return startCapture( "'ether proto 0x99B9'", "GSE" );
+    }
+    
+    @POST
+    @Path("/sv")
+    @Produces( MediaType.TEXT_PLAIN )
+    @RolesAllowed("user")
+    public Response startSvCapture() throws IOException, GeneralSecurityException
+    {
+        return startCapture( "'ether proto 0x99BA'", "SV" );
+    }
+    
+    public Response startCapture( String filter, String type ) throws IOException, GeneralSecurityException
     {
         java.nio.file.Path path = java.nio.file.Files.createTempFile( "wireshark-capture-", ".pcapng" );
         
@@ -75,7 +108,16 @@ public class PacketCaptureResource
 
         // This now works on Windows
         
-        ProcessBuilder pb = new ProcessBuilder( "powershell.exe",  "-ExecutionPolicy", "RemoteSigned", "-Command", startCaptureScript, path.toString() );
+        ProcessBuilder pb;
+        
+        if( filter != null )
+        {
+            pb = new ProcessBuilder( "powershell.exe",  "-ExecutionPolicy", "RemoteSigned", "-Command", startCaptureScript, filter, path.toString() );
+        }
+        else
+        {
+            pb = new ProcessBuilder( "powershell.exe",  "-ExecutionPolicy", "RemoteSigned", "-Command", startCaptureScript, path.toString() );
+        }
         
         pb.redirectErrorStream( true );
         
@@ -99,7 +141,7 @@ public class PacketCaptureResource
         // the database. This will be used later to lookup the process ID, and
         // to remove the capture file.
         
-        UUID dbid = dumpcapDbService.createDumpcapProcess( pid, path.toString(), getPrincipalName() );
+        UUID dbid = dumpcapDbService.createDumpcapProcess(pid, path.toString(), type, getPrincipalName() );
         
         return Response.ok( dbid ).build();
     }
