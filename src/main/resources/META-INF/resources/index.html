@@ -24,9 +24,9 @@
             keycloak.logout();
         }
         function generateTableHead(table, data) {
-            if (data == null) return;
             let thead = table.createTHead();
             let row = thead.insertRow();
+            if (!data[0]) return;
             for (let key of Object.keys(data[0])) {
 
                 let th = document.createElement('th');
@@ -100,13 +100,19 @@
                 generateTable(mytable,response.data);
             })
             .catch( error => {
-                console.log('refreshing');
-                keycloak.updateToken(5).then( () => {
-                    console.log('Token refreshed');
-                }).catch( () => {
-                    console.log('Failed to refresh token');
-                    window.location.reload();
-                });
+                if (error.response) {
+                    console.log('refreshing');
+                    keycloak.updateToken(5).then( () => {
+                        console.log('Token refreshed');
+                    }).catch( () => {
+                        console.log('Failed to refresh token');
+                        window.location.reload();
+                    });
+                } else if (error.request) {
+                    console.log('No response received ', error.request);
+                } else {
+                    console.log('Other error', error);
+                }
             });
     }
     function startCapture(type) {
@@ -118,10 +124,9 @@
             }
         })
         .then( response => {
-            console.log( "New capture started!", response );
-            listCaptures();
+            console.log("Start", response.config.method, response.config.url, response.data);
         })
-        .catch( (error) => console.log( error ) );
+        .catch( error => console.log( error ) );
     }
     function stopCapture(id) {
         axios({
@@ -132,13 +137,9 @@
             }
         })
         .then( response => {
-
-            console.log('Stopped!');
-            listCaptures();
-            // window.location.reload();
-
+            console.log('Stop', response.config.method, response.config.url);
         })
-        .catch( (error) => console.log(error) )
+        .catch( error => console.log(error) )
     }
     function downloadCapture(id) {
         axios({
@@ -151,14 +152,13 @@
             responseType: 'blob'
         })
         .then( response => {
-
             const url = window.URL.createObjectURL(new Blob([response.data]));
             const link = document.createElement('a');
             link.href = url;
             link.setAttribute('download','capture.pcapng');
             document.body.appendChild(link);
             link.click();
-
+            console.log('Download', response.config.method, response.config.url);
         })
         .catch( error => console.log( error ) );
     }
@@ -171,10 +171,8 @@
             }
         })
         .then( response => {
-
-            console.log('Deleted!');
+            console.log('Delete', response.config.method, response.config.url);
             listCaptures();
-
         })
         .catch( error => console.log(error) )
     }
