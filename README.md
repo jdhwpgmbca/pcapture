@@ -127,7 +127,7 @@ regenerated.
 
 ### Testing
 
-- The program can be tested with .\mvnw clean compile test, or you can run .\mvnw clean compile quarkus:dev and press <o> to show the test output, followed by <r> to run the tests.
+- The program can be tested with .\mvnw clean compile test, or you can run .\mvnw clean compile quarkus:dev and press `<o>` to show the test output, followed by `<r>` to run the tests.
 - An alternative way of testing that involves the Keycloak (OIDC) server is to run the test_access.ps1 script. There are now also separate scripts to start/stop/download and delete.
 
 (Install the jq JSON query client using one of the preferred methods. I used the chocolatey package manager to install mine.)
