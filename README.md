@@ -141,8 +141,10 @@ Using the HttPie client to get an access token from the test keycloak server:
 
 You can run your application in dev mode that enables live coding using:
 ```shell script
-./mvnw clean compile quarkus:dev
+./mvnw clean compile quarkus:dev -Dquarkus.profile=dev
 ```
+
+The -Dquarkus.profile=dev enables the Quarkus dev profile. This means the %dev.* properties in the application.properties file are activated. For now what that means is the Hibernate "drop-and-create" is used.
 
 > **_NOTE:_**  Quarkus now ships with a Dev UI, which is available in dev mode only at http://localhost:8080/q/dev/.
 
@@ -176,7 +178,7 @@ Or, if you don't have GraalVM installed, you can run the native executable build
 ./mvnw package -Pnative -Dquarkus.native.container-build=true
 ```
 
-You can then execute your native executable with: `./target/dumpcap-ws-1.0.0-SNAPSHOT-runner`
+You can then execute your native executable with: `./target/dumpcap-ws-1.0.0-runner`
 
 If you want to learn more about building native executables, please consult https://quarkus.io/guides/maven-tooling.html.
 
