@@ -93,7 +93,7 @@ public class PacketCaptureResource
     @RolesAllowed("user")
     public Response startSvCapture() throws IOException, GeneralSecurityException
     {
-        return startCapture( "'ether proto 0x99BA'", "SV" );
+        return startCapture( "'ether proto 0x88BA'", "SV" );
     }
     
     public Response startCapture( String filter, String type ) throws IOException, GeneralSecurityException
