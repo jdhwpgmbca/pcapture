@@ -36,11 +36,13 @@ migration tool, and upgrades will be automatic. The H2 database files end with t
 
 (This file configures the back-end web service, it doesn't affect the web client.)
 
+```shell script
 QUARKUS_OIDC_AUTH_SERVER_URL=https://your.keycloak.server/auth/realms/quarkus
 QUARKUS_OIDC_CLIENT_ID=backend-service
 QUARKUS_OIDC_CREDENTIALS_SECRET=your-keycloak-client-credentials   (This must match Keycloak (logged in as admin) -> Quarkus Realm -> Clients -> Backend-service -> Credentials -> Secret. For security you should regenerate the secret.)
 QUARKUS_OIDC_TLS_VERIFICATION=required
 QUARKUS_HIBERNATE_ORM_DATABASE_GENERATION=none
+```
 
 # The web client front-end configuration (src/main/resources/META-INF/resources)
 
