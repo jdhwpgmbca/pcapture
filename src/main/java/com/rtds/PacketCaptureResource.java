@@ -184,6 +184,12 @@ public class PacketCaptureResource
     @NoCache
     public Response list()
     {
+        // First, remove the items for the database for which there are no files.
+        // This is necessary because sometimes files are manually deleted, and
+        // other times the deletion fails, but then succeeds later.
+        
+//        dumpcapDbService.removeDeletedFilesFromDb(); // Sometimes causes Optimistic Locking Exceptions.
+        
         List<DumpcapProcessDto> capture_ids = dumpcapDbService.list( getPrincipalName() );
         
         return Response.ok( capture_ids ).build();

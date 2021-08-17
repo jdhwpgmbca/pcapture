@@ -7,10 +7,12 @@ package com.rtds.svc;
 
 import com.rtds.dto.DumpcapProcessDto;
 import com.rtds.jpa.DumpcapProcess;
+import java.io.File;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
@@ -96,14 +98,29 @@ public class DumpcapDbService
     {
         if( uid.isPresent() )
         {
-            return em.createQuery( "select proc from DumpcapProcess proc where proc.uid = :uid", DumpcapProcess.class ).
-                setParameter( "uid", uid.get() ).
-                getResultList().stream().map( p -> new DumpcapProcessDto( p ) ).collect( Collectors.toList() );
+            return em.createQuery( "select proc from DumpcapProcess proc where proc.uid = :uid", DumpcapProcess.class )
+                    .setParameter( "uid", uid.get() )
+                    .getResultList()
+                    .stream()
+                    .map( p -> new DumpcapProcessDto( p ) )
+                    .filter( dto -> !dto.getStatus().equals( "deleted" ) )
+                    .collect( Collectors.toList() );
         }
         else
         {
             return listAll();
         }
+    }
+    
+    public void removeDeletedFilesFromDb()
+    {
+            List<DumpcapProcess> deleted_list = em.createQuery( "select proc from DumpcapProcess proc", DumpcapProcess.class )
+                    .getResultList()
+                    .stream()
+                    .filter( proc -> !new File( proc.getPathName() ).exists() )
+                    .collect( Collectors.toList() );
+            
+            deleted_list.forEach( proc -> em.remove( proc ) );
     }
     
     public List<DumpcapProcessDto> listAll()

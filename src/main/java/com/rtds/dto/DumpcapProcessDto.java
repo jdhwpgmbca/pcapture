@@ -61,11 +61,18 @@ public class DumpcapProcessDto
 
         try
         {
-            BasicFileAttributes attr = Files.readAttributes(path, BasicFileAttributes.class);
+            if( path.toFile().exists() )
+            {
+                BasicFileAttributes attr = Files.readAttributes(path, BasicFileAttributes.class);
 
-            this.creationTime = attr.creationTime().toInstant();
-            this.lastModifiedTime = attr.lastModifiedTime().toInstant();
-            this.length = attr.size();
+                this.creationTime = attr.creationTime().toInstant();
+                this.lastModifiedTime = attr.lastModifiedTime().toInstant();
+                this.length = attr.size();
+            }
+            else
+            {
+                this.status = "deleted";
+            }
         }
         catch( IOException ex )
         {
