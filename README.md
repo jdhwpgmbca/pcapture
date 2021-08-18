@@ -4,7 +4,7 @@ This project uses Quarkus, the Supersonic Subatomic Java Framework.
 
 If you want to learn more about Quarkus, please visit its website: https://quarkus.io/ .
 
-- The idea for the project is to use the Wireshark dumpcap.exe program to capture packets into a temporary .pcapng file,
+- The idea for the project is to use the Wireshark dumpcap.exe (or tcpdump) program to capture packets into a temporary .pcapng file,
   then retrieve the capture at an arbitrary later time.
 - There are eight commands: startAll, startGoose, startGSE, startSV, stop, read and delete and list.
 - The project can be secured using an OpenID-connect compatible server like Keycloak.
@@ -14,11 +14,11 @@ If you want to learn more about Quarkus, please visit its website: https://quark
 
 - At this point the web service must tie in with a an OpenID-connect authentication server like Keycloak.
 - There is now a rudimentary web-based user interface that allows you to start/stop/download/delete captures.
-- I suggest that you create a settings.xml file in your maven $HOME/.m2 directory to store the ${auth.server.url} property which should point to your keycloak server. See below for a sample.
-- I also suggest you create a .env file in the top level project directory.
+- I suggest that you create a settings.xml file in your maven $HOME/.m2 directory to store the ${auth.server.url} property which should point to your keycloak server. See below for an example.
+- I also suggest you create a .env file in the top level project directory. This holds environment settings for Quarkus when running from the local folder (does *NOT* affect production jar).
 - The program now works on both Windows and Linux.
 - The program also works inside a Docker container with some caveats. It must be run with the --privileged and --net=host flags.
-- It's unlikely that you'll be able to run it inside a Kubernetes cluster, because Kubernetes uses separate internal networks. Most traffic is redirected into Kubernetes clusters via LoadBalancer and Ingress resources.
+- It's unlikely that you'll be able to run it inside a Kubernetes cluster, because Kubernetes uses separate internal Pod networks. Most traffic is redirected into Kubernetes clusters via LoadBalancer and Ingress resources.
 - You may want to write a separate standalone client web application to furthur separate the client from the back-end service in terms of security.
 - There may also be other reasons why you'd want a different client. I know that there are quite a few Node.JS based frameworks out there that are very popular.
 
@@ -28,13 +28,14 @@ The src/main/resources/application.properties file contains a value called quark
 set to drop-and-create. This is a useful development setting that drops the database on every startup. However, you'll more than
 likely want to change this to "none" instead once you have your database up and going, otherwise you'll have inconsistencies
 between what's been captured and what's listed in the database. The way I'd recommend to do this is to set QUARKUS_HIBERNATE_ORM_DATABASE_GENERATION=none
-for production, or you can use update for development.
+for production, or you can use update for development. The tricky part about production is that you'll need to copy a fully provisioned database file into
+the docker image, unless you want to connect to an external production database like MySQL or Postgres (recommended).
 
 # Database Schema Upgrades
 
 Sometimes a database schema upgrade may be necessary, and I haven't integrated flyway or another database migration tool at this time. If you get database errors
-on startup, you should quit quarkus and delete the databases, and clear up any capture files manually. If there's enough demand I'll integrate a proper schema
-migration tool, and upgrades will be automatic. The H2 database files end with the .db extension.
+on startup, you should try using the "update" setting for QUARKUS_HIBERNATE_ORM_DATABASE_GENERATION, or delete the databases, and clear up any capture files manually.
+If there's enough demand I'll integrate a proper schema migration tool, and upgrades will be automatic. The H2 database files end with the .db extension.
 
 ## The .env File (stored in your project's top level folder)
 
@@ -43,19 +44,57 @@ migration tool, and upgrades will be automatic. The H2 database files end with t
 ```shell script
 QUARKUS_OIDC_AUTH_SERVER_URL=https://your.keycloak.server/auth/realms/quarkus
 QUARKUS_OIDC_CLIENT_ID=backend-service
-QUARKUS_OIDC_CREDENTIALS_SECRET=your-keycloak-client-secret
+QUARKUS_OIDC_CREDENTIALS_SECRET=your-oidc-credentials-secret
 QUARKUS_OIDC_TLS_VERIFICATION=required
-QUARKUS_HIBERNATE_ORM_DATABASE_GENERATION=update
-QUARKUS_DATASOURCE_JDBC_URL=jdbc:h2:file:./h2db
-QUARKUS_CONTAINER_IMAGE_BUILD=true
-QUARKUS_CONTAINER_IMAGE_REGISTRY=git.rtdstech.com:4567
-QUARKUS_CONTAINER_IMAGE_GROUP=yourname
 ```
 
 The QUARKUS_OIDC_CREDENTIALS_SECRET must match the Keycloak -> Quarkus Realm -> Clients -> Backend-service -> Credentials -> Secret. For security you should regenerate the secret.
 The frontend-client does not have a credentials secret because it's configured with "Access Type" set to "public". This is necessary because JavaScript based clients have no secure
 way to store the credentials. It's necessary to take additional security precautions for this reason. In particular, you should make sure the "Valid Redirect URIs" field is as specific
 as possible (so don't use * by itself for instance).
+
+## Maven settings.xml example:
+
+```xml
+<settings 
+    xmlns="http://maven.apache.org/SETTINGS/1.2.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:schemaLocation="http://maven.apache.org/SETTINGS/1.2.0 http://maven.apache.org/xsd/settings-1.2.0.xsd"
+>
+
+    <profiles>
+        <profile>
+            <id>keycloak</id>
+            <properties>
+                <auth.server.url>https://your.keycloak.server</auth.server.url>
+            </properties>
+        </profile>
+        <profile>
+            <id>docker</id>
+            <properties>
+                <docker.registry>your.docker.registry:4567</docker.registry>
+                <docker.group>somegroup</docker.group>
+            </properties>
+        </profile>
+    </profiles>
+
+    <activeProfiles>
+        <activeProfile>keycloak</activeProfile>
+        <activeProfile>docker</activeProfile>
+    </activeProfiles>
+
+</settings>
+```
+
+You'll of course want to change the value of "https://your.keycloak.server" to whatever your Keycloak server URL is.
+
+The token replacements are done to help you get started quickly, and also to remove dependencies on the project location, 
+and site specific URLs. However, there is one side effect; the tokens don't get replaced at runtime by the quarkus hot-deploy
+stuff, and this often causes server crashes. A workaround is to put variables that are developer specific in your
+$HOME/.m2/settings.xml file and ${project.basedir}/.env files. The settings.xml file is used for maven variable replacements
+during compile time, and the .env file holds environment variables that Quarkus reads during startup. The environment
+variables can be used to override settings in the src/main/resources/application.properties file. You can also override
+these properties with -Dpropname=propvalue on the command line.
 
 # The web client front-end configuration (src/main/resources/META-INF/resources)
 
@@ -82,48 +121,7 @@ folder:
 
 The generated version from Keycloak should be pretty close to this, but it will have a hard-coded value for auth-server-url.
 I've replaced that with a ${auth.server.url} variable that gets replaced by maven during the compile phase. The
-$HOME/.m2/settings.xml file is the recommended way to override this setting. Here's an example:
-
-```xml
-<settings 
-    xmlns="http://maven.apache.org/SETTINGS/1.2.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:schemaLocation="http://maven.apache.org/SETTINGS/1.2.0 http://maven.apache.org/xsd/settings-1.2.0.xsd"
->
-
-    <profiles>
-        <profile>
-            <id>keycloak</id>
-            <properties>
-                <auth.server.url>https://my.keycloak.server</auth.server.url>
-            </properties>
-        </profile>
-        <profile>
-            <id>docker</id>
-            <properties>
-                <docker.registry>my.docker.registry:1234</docker.registry>
-                <docker.group>my_docker_image_group_name</docker.group>
-            </properties>
-        </profile>
-    </profiles>
-
-    <activeProfiles>
-        <activeProfile>keycloak</activeProfile>
-        <activeProfile>docker</activeProfile>
-    </activeProfiles>
-
-</settings>
-```
-
-You'll of course want to change the value of "https://your.keycloak.server" to whatever your Keycloak server URL is.
-
-The token replacements are done to help you get started quickly, and also to remove dependencies on the project location, 
-and site specific URLs. However, there is one side effect; the tokens don't get replaced at runtime by the quarkus hot-deploy
-stuff, and this often causes server crashes. A workaround is to put variables that are developer specific in your
-$HOME/.m2/settings.xml file and ${project.basedir}/.env files. The settings.xml file is used for maven variable replacements
-during compile time, and the .env file holds environment variables that Quarkus reads during startup. The environment
-variables can be used to override settings in the src/main/resources/application.properties file. You can also override
-these properties with -Dpropname=propvalue on the command line.
+$HOME/.m2/settings.xml file is the recommended way to override this setting. See above for an example.
 
 ## Authentication and Authorization
 
