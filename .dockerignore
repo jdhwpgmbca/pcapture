@@ -1,4 +1,5 @@
 *
+!src/main/resources/startCaptureScript.sh
 !target/*-runner
 !target/*-runner.jar
 !target/lib/*

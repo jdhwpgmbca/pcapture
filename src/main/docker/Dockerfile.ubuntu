@@ -19,12 +19,13 @@ RUN apt-get update && apt-get install -y curl ${JAVA_PACKAGE} \
 ENV JAVA_OPTIONS="-Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager"
 # We make four distinct layers so if there are application changes the library layers can be re-used
 
-RUN apt-get install -y tcpdump wireshark
+RUN apt-get install -y tcpdump wireshark vim-tiny
 
 # Both tcpdump and dumpcap are working!
 
 RUN groupadd -g 1001 quarkus \
-    && useradd --no-create-home -u 1001 -g quarkus -s /bin/bash quarkus \
+    && useradd -u 1001 -g quarkus -d /home/quarkus -s /bin/bash quarkus \
+    && mkdir /home/quarkus && chown quarkus:quarkus /home/quarkus \
     && chgrp quarkus /usr/bin/dumpcap \
     && chmod a+x /usr/bin/dumpcap \
     && /usr/sbin/setcap cap_net_raw,cap_net_admin=eip /usr/bin/dumpcap
