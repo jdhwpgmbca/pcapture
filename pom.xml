@@ -177,10 +177,23 @@
   </build>
   <profiles>
     <profile>
+      <id>linux</id>
+      <activation>
+        <os>
+          <name>Linux</name>
+        </os>
+      </activation>
+      <properties>
+        <start-capture-script>${project.basedir}/src/main/resources/startCaptureScript.sh</start-capture-script>
+      </properties>
+    </profile>
+    <profile>
       <id>container</id>
       <properties>
         <datasource.jdbc.url>jdbc:h2:file:/deployments/h2db</datasource.jdbc.url>
         <start-capture-script>/deployments/startCaptureScript.sh</start-capture-script>
+        <!-- Tests are skipped because the startCaptureScript path above isn't accessible outside the container. -->
+        <skipTests>true</skipTests>
       </properties>
     </profile>
     <profile>
