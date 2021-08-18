@@ -13,7 +13,10 @@
     <script>
         var keycloak = new Keycloak();
         keycloak.init({onLoad: 'login-required'}).then(function () {
-            console.log('User is now authenticated.');
+            let username = keycloak.idTokenParsed.preferred_username;
+            console.log('User ' + username + ' is now authenticated.');
+            let usernameDiv = document.getElementById('username');
+            usernameDiv.innerHTML = 'Logged in as: ' + username;
             setInterval( () => {
                 listCaptures();
             }, 2000 );
@@ -184,6 +187,7 @@
     <button onclick="startCapture('gse')">Start GSE Capture</button>
     <button onclick="startCapture('sv')">Start SV Capture</button>
     <button onclick="logout()">Logout</button>
+    <div id="username"></div>
     <table id="mytable" style="padding: 1em;">
 
     </table>
