@@ -42,16 +42,16 @@ import org.jboss.resteasy.annotations.cache.NoCache;
 @Path("/api/capture" )
 public class PacketCaptureResource
 {
-    @ConfigProperty(name = "startCaptureScript")
+    @ConfigProperty(name = "start-capture-script")
     String startCaptureScript;
     
-    @ConfigProperty(name = "keyStorePath" )
+    @ConfigProperty(name = "keystore.path" )
     String keyStorePath;
     
-    @ConfigProperty(name = "keyStoreAlias")
+    @ConfigProperty(name = "keystore.alias")
     String keyStoreAlias;
     
-    @ConfigProperty(name = "keyStorePassword")
+    @ConfigProperty(name = "keystore.password")
     String keyStorePassword;
 
     @Inject
@@ -75,7 +75,7 @@ public class PacketCaptureResource
     @RolesAllowed("user")
     public Response startGooseCapture() throws IOException, GeneralSecurityException
     {
-        return startCapture( "'ether proto 0x99B8'", "Goose" );
+        return startCapture( "ether proto 0x99B8", "Goose" );
     }
     
     @POST
@@ -84,7 +84,7 @@ public class PacketCaptureResource
     @RolesAllowed("user")
     public Response startGSECapture() throws IOException, GeneralSecurityException
     {
-        return startCapture( "'ether proto 0x99B9'", "GSE" );
+        return startCapture( "ether proto 0x99B9", "GSE" );
     }
     
     @POST
@@ -93,30 +93,47 @@ public class PacketCaptureResource
     @RolesAllowed("user")
     public Response startSvCapture() throws IOException, GeneralSecurityException
     {
-        return startCapture( "'ether proto 0x88BA'", "SV" );
+        return startCapture( "ether proto 0x88BA", "SV" );
     }
     
     public Response startCapture( String filter, String type ) throws IOException, GeneralSecurityException
     {
         java.nio.file.Path path = java.nio.file.Files.createTempFile( "wireshark-capture-", ".pcapng" );
         
-        // Typically this would be in the scripts:
-        // 
-        // Goose: dumpcap -f "ether proto 0x99B8" -w [path]
-        // GSE:   dumpcap -f "ether proto 0x99B9" -w [path]
-        // SV:    dumpcap -f "ether proto 0x88BA" -w [path]
-
-        // This now works on Windows
+        // This now works on Windows and Ubuntu Linux!
         
         ProcessBuilder pb;
         
-        if( filter != null )
+        if( System.getProperty( "os.name" ).toLowerCase().startsWith( "win" ) )
         {
-            pb = new ProcessBuilder( "powershell.exe",  "-ExecutionPolicy", "RemoteSigned", "-Command", startCaptureScript, filter, path.toString() );
+            if( filter != null )
+            {
+                // Hack for PowerShell quoting: I needed to surround the filter in single quotes, otherwise the
+                // filter would be interpreted as separate arguments! This does not appear to be an issue when
+                // running shell scripts on Linux.
+
+                StringBuilder f = new StringBuilder( "'" );
+
+                f.append( filter );
+                f.append( "'" );
+
+                pb = new ProcessBuilder( "powershell.exe",  "-ExecutionPolicy", "RemoteSigned", "-Command", startCaptureScript, f.toString(), path.toString() );
+            }
+            else
+            {
+                pb = new ProcessBuilder( "powershell.exe",  "-ExecutionPolicy", "RemoteSigned", "-Command", startCaptureScript, path.toString() );
+            }
         }
         else
         {
-            pb = new ProcessBuilder( "powershell.exe",  "-ExecutionPolicy", "RemoteSigned", "-Command", startCaptureScript, path.toString() );
+            if( filter != null )
+            {
+                pb = new ProcessBuilder( startCaptureScript, path.toString(), filter );
+            }
+            else
+            {
+                pb = new ProcessBuilder( startCaptureScript, path.toString() );
+            }
         }
         
         pb.redirectErrorStream( true );
