@@ -45,15 +45,6 @@ public class PacketCaptureResource
     @ConfigProperty(name = "start-capture-script")
     String startCaptureScript;
     
-    @ConfigProperty(name = "keystore.path" )
-    String keyStorePath;
-    
-    @ConfigProperty(name = "keystore.alias")
-    String keyStoreAlias;
-    
-    @ConfigProperty(name = "keystore.password")
-    String keyStorePassword;
-
     @Inject
     DumpcapDbService dumpcapDbService;
     
