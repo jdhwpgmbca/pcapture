@@ -16,6 +16,9 @@ If you want to learn more about Quarkus, please visit its website: https://quark
 - There is now a rudimentary web-based user interface that allows you to start/stop/download/delete captures.
 - I suggest that you create a settings.xml file in your maven $HOME/.m2 directory to store the ${auth.server.url} property which should point to your keycloak server. See below for a sample.
 - I also suggest you create a .env file in the top level project directory.
+- The program now works on both Windows and Linux.
+- The program also works inside a Docker container with some caveats. It must be run with the --privileged and --net=host flags.
+- It's unlikely that you'll be able to run it inside a Kubernetes cluster, because Kubernetes uses separate internal networks. Most traffic is redirected into Kubernetes clusters via LoadBalancer and Ingress resources.
 - You may want to write a separate standalone client web application to furthur separate the client from the back-end service in terms of security.
 - There may also be other reasons why you'd want a different client. I know that there are quite a few Node.JS based frameworks out there that are very popular.
 
@@ -24,7 +27,8 @@ If you want to learn more about Quarkus, please visit its website: https://quark
 The src/main/resources/application.properties file contains a value called quarkus.hibernate-orm.database.generation which is
 set to drop-and-create. This is a useful development setting that drops the database on every startup. However, you'll more than
 likely want to change this to "none" instead once you have your database up and going, otherwise you'll have inconsistencies
-between what's been captured and what's listed in the database.
+between what's been captured and what's listed in the database. The way I'd recommend to do this is to set QUARKUS_HIBERNATE_ORM_DATABASE_GENERATION=none
+for production, or you can use update for development.
 
 # Database Schema Upgrades
 
@@ -39,9 +43,13 @@ migration tool, and upgrades will be automatic. The H2 database files end with t
 ```shell script
 QUARKUS_OIDC_AUTH_SERVER_URL=https://your.keycloak.server/auth/realms/quarkus
 QUARKUS_OIDC_CLIENT_ID=backend-service
-QUARKUS_OIDC_CREDENTIALS_SECRET=your-keycloak-client-credentials
+QUARKUS_OIDC_CREDENTIALS_SECRET=your-keycloak-client-secret
 QUARKUS_OIDC_TLS_VERIFICATION=required
-QUARKUS_HIBERNATE_ORM_DATABASE_GENERATION=none
+QUARKUS_HIBERNATE_ORM_DATABASE_GENERATION=update
+QUARKUS_DATASOURCE_JDBC_URL=jdbc:h2:file:./h2db
+QUARKUS_CONTAINER_IMAGE_BUILD=true
+QUARKUS_CONTAINER_IMAGE_REGISTRY=git.rtdstech.com:4567
+QUARKUS_CONTAINER_IMAGE_GROUP=yourname
 ```
 
 The QUARKUS_OIDC_CREDENTIALS_SECRET must match the Keycloak -> Quarkus Realm -> Clients -> Backend-service -> Credentials -> Secret. For security you should regenerate the secret.
