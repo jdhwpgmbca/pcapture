@@ -38,10 +38,6 @@ COPY --chown=quarkus target/quarkus-app/lib/ /deployments/lib/
 COPY --chown=quarkus target/quarkus-app/*.jar /deployments/
 COPY --chown=quarkus target/quarkus-app/app/ /deployments/app/
 COPY --chown=quarkus target/quarkus-app/quarkus/ /deployments/quarkus/
-
-# What isn't working yet is the startCaptureScript.sh isn't being copied
-# to the image yet. For some reason it's being excluded.
-
 COPY --chown=quarkus src/main/resources/startCaptureScript.sh /deployments/
 
 ENV START_CAPTURE_SCRIPT=/deployments/startCaptureScript.sh
