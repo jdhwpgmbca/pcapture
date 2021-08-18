@@ -18,6 +18,8 @@
     <surefire-plugin.version>3.0.0-M5</surefire-plugin.version>
     <auth.server.url>https://your.keycloak.server</auth.server.url>
     <docker.registry>your.docker.registry:1234</docker.registry>
+    <docker.group>your_docker_image_group</docker.group>
+    <datasource.jdbc.url>jdbc:h2:file:${project.basedir}/h2db</datasource.jdbc.url>
     <start-capture-script>${project.basedir}/src/main/resources/startCaptureScript.ps1</start-capture-script>
     <git.hash></git.hash> <!-- This would normally be overridden by your Continuous Integration System. We use GitLab-CI. -->
   </properties>
@@ -174,6 +176,13 @@
     </plugins>
   </build>
   <profiles>
+    <profile>
+      <id>container</id>
+      <properties>
+        <datasource.jdbc.url>jdbc:h2:file:/deployments/h2db</datasource.jdbc.url>
+        <start-capture-script>/deployments/startCaptureScript.sh</start-capture-script>
+      </properties>
+    </profile>
     <profile>
       <id>native</id>
       <activation>
