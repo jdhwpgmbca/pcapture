@@ -87,13 +87,21 @@ $HOME/.m2/settings.xml file is the recommended way to override this setting. Her
         <profile>
             <id>keycloak</id>
             <properties>
-                <auth.server.url>https://your.keycloak.server</auth.server.url>
+                <auth.server.url>https://my.keycloak.server</auth.server.url>
+            </properties>
+        </profile>
+        <profile>
+            <id>docker</id>
+            <properties>
+                <docker.registry>my.docker.registry:1234</docker.registry>
+                <docker.group>my_docker_image_group_name</docker.group>
             </properties>
         </profile>
     </profiles>
 
     <activeProfiles>
         <activeProfile>keycloak</activeProfile>
+        <activeProfile>docker</activeProfile>
     </activeProfiles>
 
 </settings>
