@@ -19,7 +19,8 @@
     <auth.server.url>https://your.keycloak.server</auth.server.url>
     <docker.registry>your.docker.registry:1234</docker.registry>
     <docker.group>your_initials</docker.group>
-    <datasource.jdbc.url>jdbc:h2:file:./h2db</datasource.jdbc.url>
+    <datasource.jdbc.url>jdbc:h2:file:${project.basedir}/h2db</datasource.jdbc.url>
+    <datasource.jdbc.test.url>jdbc:h2:mem:test</datasource.jdbc.test.url>
     <start-capture-script>${project.basedir}/src/main/resources/startCaptureScript.ps1</start-capture-script>
     <git.hash></git.hash> <!-- This would normally be overridden by your Continuous Integration System. We use GitLab-CI. -->
   </properties>
