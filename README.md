@@ -18,6 +18,11 @@ If you want to learn more about Quarkus, please visit its website: https://quark
 - I also suggest you create a .env file in the top level project directory. This holds environment settings for Quarkus when running from the local folder (does *NOT* affect production jar).
 - The program now works on both Windows and Linux.
 - The program also works inside a Docker container with some caveats. It must be run with the --privileged and --net=host flags.
+- The docker --net=host flag is a problem on Windows. At this point in time, it doesn't work at all because there's no bridging between the Docker Linux VM and the Windows physical interface.
+  As a workaround, I've removed the --net=host and added -p 8080:8080 flags. However, while you can connect to the interface and capture packets, you're only able to do it on the Docker private
+  network - which isn't really useful.
+- I'm now using an Alpine Linux based Docker image, and use tcpdump rather than Wireshark's dumpcap program.
+- I can always switch back to Wireshark's dumpcap if we need it, but that would greatly increase the Docker image size.
 - It's unlikely that you'll be able to run it inside a Kubernetes cluster, because Kubernetes uses separate internal Pod networks. Most traffic is redirected into Kubernetes clusters via LoadBalancer and Ingress resources.
 - You may want to write a separate standalone client web application to furthur separate the client from the back-end service in terms of security.
 - There may also be other reasons why you'd want a different client. I know that there are quite a few Node.JS based frameworks out there that are very popular.
