@@ -50,7 +50,7 @@ if($ENV:QUARKUS_OIDC_AUTH_SERVER_URL -and $ENV:QUARKUS_OIDC_CREDENTIALS_SECRET) 
 
 Write-Host "Starting capture"
 
-$dbid=(http -b POST :8080/api/capture "Authorization:Bearer $access_token")
+$dbid=(http -b POST :8080/api/capture/all "Authorization:Bearer $access_token")
 
 Write-Host "Capture ID is $dbid"
 
