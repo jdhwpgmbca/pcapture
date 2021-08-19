@@ -1,5 +1,6 @@
 *
 !src/main/resources/startCaptureScript.sh
+!src/main/resources/startCaptureScriptTcpdumpForAlpineContainers.sh
 !target/*-runner
 !target/*-runner.jar
 !target/lib/*

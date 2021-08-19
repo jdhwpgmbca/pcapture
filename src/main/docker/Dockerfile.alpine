@@ -1,0 +1,53 @@
+FROM alpine:3.14.1
+
+ARG JAVA_PACKAGE=openjdk11
+ARG RUN_JAVA_VERSION=1.3.8
+ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en'
+
+RUN apk add --no-cache shadow libcap tini bash curl ${JAVA_PACKAGE} \
+    && mkdir /deployments \
+    && chown 1001 /deployments \
+    && chmod "g+rwX" /deployments \
+    && chown 1001:root /deployments \
+    && curl https://repo1.maven.org/maven2/io/fabric8/run-java-sh/${RUN_JAVA_VERSION}/run-java-sh-${RUN_JAVA_VERSION}-sh.sh -o /deployments/run-java.sh \
+    && chown 1001 /deployments/run-java.sh \
+    && chmod 540 /deployments/run-java.sh
+
+# && echo "securerandom.source=file:/dev/urandom" >> /etc/alternatives/jre/conf/security/java.security
+
+# Configure the JAVA_OPTIONS, you can add -XshowSettings:vm to also display the heap size.
+ENV JAVA_OPTIONS="-Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager"
+# We make four distinct layers so if there are application changes the library layers can be re-used
+
+RUN apk add --no-cache tcpdump
+
+RUN groupadd -g 1001 quarkus \
+    && useradd -u 1001 -g quarkus -d /home/quarkus -s /bin/bash quarkus \
+    && mkdir /home/quarkus && chown quarkus:quarkus /home/quarkus \
+    && chgrp quarkus /usr/bin/tcpdump \
+    && chmod a+x /usr/bin/tcpdump \
+    && /usr/sbin/setcap cap_net_raw,cap_net_admin=eip /usr/bin/tcpdump
+
+COPY --chown=quarkus target/quarkus-app/lib/ /deployments/lib/
+COPY --chown=quarkus target/quarkus-app/*.jar /deployments/
+COPY --chown=quarkus target/quarkus-app/app/ /deployments/app/
+COPY --chown=quarkus target/quarkus-app/quarkus/ /deployments/quarkus/
+COPY --chown=quarkus src/main/resources/startCaptureScriptTcpdumpForAlpineContainers.sh /deployments/startCaptureScript.sh
+
+ENV START_CAPTURE_SCRIPT=/deployments/startCaptureScript.sh
+
+EXPOSE 8080
+USER 1001
+
+# I've modified the entrypoint so I can use a different init system that has been specialized for containers.
+# This init adds signal handlers to PID 1 to cleanup after process terminations. Before I did this, tcpdump
+# was leaving zombie processes around after it terminated, and this doesn't release the process memory. You
+# don't always need to do this sort of thing in a container, because you don't always need to launch any more
+# processes. But in this case, since we are spawning tcpdump processes, this step is necessary.
+# 
+# As just a little more background on this behaviour: Linux usually installs signal handlers for other PIDs,
+# just not for PID=1. And in a Docker container, the ENTRYPOINT will have a PID of 1.
+
+ENTRYPOINT ["/sbin/tini", "--"]
+
+CMD [ "/deployments/run-java.sh" ]
