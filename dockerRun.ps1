@@ -1,2 +1,2 @@
 
-docker run --rm --net=host --privileged quarkus/dumpcap-ws-jvm:latest
+docker run --rm -p8080:8080 --privileged quarkus/dumpcap-ws-jvm:latest
