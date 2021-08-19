@@ -4,28 +4,28 @@ This project uses Quarkus, the Supersonic Subatomic Java Framework.
 
 If you want to learn more about Quarkus, please visit its website: https://quarkus.io/ .
 
-- The idea for the project is to use the Wireshark dumpcap.exe (or tcpdump) program to capture packets into a temporary .pcapng file,
+- The idea for the project is to use the Wireshark `dumpcap.exe` (or `tcpdump`) program to capture packets into a temporary .pcapng file,
   then retrieve the capture at an arbitrary later time.
-- There are eight commands: startAll, startGoose, startGSE, startSV, stop, read and delete and list.
-- The project can be secured using an OpenID-connect compatible server like Keycloak.
+- There are eight commands: `startAll`, `startGoose`, `startGSE`, `startSV`, `stop`, `read`, `delete` and `list`.
+- The project can be secured using an `OpenID-connect` compatible server like `Keycloak`.
 - The start commands return a unique UUID (Universally Unique Identifier), which is then used as a path parameter for the other commands (except list).
 
 ## Status and Future Directions
 
-- At this point the web service must tie in with a an OpenID-connect authentication server like Keycloak.
+- At this point the web service must tie in with a an `OpenID-connect` authentication server like `Keycloak`.
 - There is now a rudimentary web-based user interface that allows you to start/stop/download/delete captures.
-- I suggest that you create a settings.xml file in your maven $HOME/.m2 directory to store the ${auth.server.url} property which should point to your keycloak server. See below for an example.
-- I also suggest you create a .env file in the top level project directory. This holds environment settings for Quarkus when running from the local folder (does *NOT* affect production jar).
+- I suggest that you create a settings.xml file in your maven `$HOME/.m2` directory to store the `${auth.server.url}` property which should point to your keycloak server. See below for an example.
+- I also suggest you create a `.env` file in the top level project directory. This holds environment settings for Quarkus when running from the local folder (does *NOT* affect production jar).
 - The program now works on both Windows and Linux.
-- The program also works inside a Docker container with some caveats. It must be run with the --privileged and --net=host flags.
-- The docker --net=host flag is a problem on Windows. At this point in time, it doesn't work at all because there's no bridging between the Docker Linux VM and the Windows physical interface.
-  As a workaround, I've removed the --net=host and added -p 8080:8080 flags. However, while you can connect to the interface and capture packets, you're only able to do it on the Docker private
+- The program also works inside a Docker container with some caveats. It must be run with the `--privileged` and `--net=host` flags.
+- The docker `--net=host` flag is a problem on Windows. At this point in time, it doesn't work at all because there's no bridging between the Docker Linux VM and the Windows physical interface.
+  As a workaround, I've removed the `--net=host` and added `-p 8080:8080` flags. However, while you can connect to the interface and capture packets, you're only able to do it on the Docker private
   network - which isn't really useful.
-- I'm now using an Alpine Linux based Docker image, and use tcpdump rather than Wireshark's dumpcap program.
-- I can always switch back to Wireshark's dumpcap if we need it, but that would greatly increase the Docker image size.
-- It's unlikely that you'll be able to run it inside a Kubernetes cluster, because Kubernetes uses separate internal Pod networks. Most traffic is redirected into Kubernetes clusters via LoadBalancer and Ingress resources.
+- I'm now using an `Alpine Linux` based `Docker` image, and use `tcpdump` rather than Wireshark's `dumpcap` program.
+- I can always switch back to Wireshark's `dumpcap` if we need it, but that would greatly increase the Docker image size.
+- It's unlikely that you'll be able to run it inside a `Kubernetes` cluster, because `Kubernetes` uses separate internal Pod networks. Most traffic is redirected into Kubernetes clusters via LoadBalancer and Ingress resources.
 - You may want to write a separate standalone client web application to furthur separate the client from the back-end service in terms of security.
-- There may also be other reasons why you'd want a different client. I know that there are quite a few Node.JS based frameworks out there that are very popular.
+- There may also be other reasons why you'd want a different client. I know that there are quite a few `Node.JS` based frameworks out there that are very popular.
 
 ## Understanding Project Settings
 
@@ -41,18 +41,14 @@ Personally, I put generic, non-site-specific values in the `pom.xml` and applica
 
 ## Database Configuration
 
-The src/main/resources/application.properties file contains a value called quarkus.hibernate-orm.database.generation which is
-set to drop-and-create. This is a useful development setting that drops the database on every startup. However, you'll more than
-likely want to change this to "none" instead once you have your database up and going, otherwise you'll have inconsistencies
-between what's been captured and what's listed in the database. The way I'd recommend to do this is to set QUARKUS_HIBERNATE_ORM_DATABASE_GENERATION=none
-for production, or you can use update for development. The tricky part about production is that you'll need to copy a fully provisioned database file into
-the docker image, unless you want to connect to an external production database like MySQL or Postgres (recommended).
+The src`/main/resources/application.properties` file contains a value called `quarkus.hibernate-orm.database.generation` which is
+set to `drop-and-create`. This is a useful development setting that drops the database on every startup. However, you'll more than
+likely want to change this to `none` instead once you have your database up and going, otherwise you'll have inconsistencies
+between what's been captured and what's listed in the database. The way I'd recommend to do this is to set `QUARKUS_HIBERNATE_ORM_DATABASE_GENERATION=none` for production, or you can use update for development. The tricky part about production is that you'll need to copy a fully provisioned database file into the docker image, unless you want to connect to an external production database like MySQL or Postgres (recommended).
 
 # Database Schema Upgrades
 
-Sometimes a database schema upgrade may be necessary, and I haven't integrated flyway or another database migration tool at this time. If you get database errors
-on startup, you should try using the "update" setting for QUARKUS_HIBERNATE_ORM_DATABASE_GENERATION, or delete the databases, and clear up any capture files manually.
-If there's enough demand I'll integrate a proper schema migration tool, and upgrades will be automatic. The H2 database files end with the .db extension.
+Sometimes a database schema upgrade may be necessary, and I haven't integrated flyway or another database migration tool at this time. If you get database errors on startup, you should try using the `update` setting for `QUARKUS_HIBERNATE_ORM_DATABASE_GENERATION`, or delete the databases, and clear up any capture files manually. If there's enough demand I'll integrate a proper schema migration tool, and upgrades will be automatic. The H2 database files end with the `.db` extension.
 
 ## The .env File (stored in your project's top level folder)
 
@@ -65,10 +61,7 @@ QUARKUS_OIDC_CREDENTIALS_SECRET=your-oidc-credentials-secret
 QUARKUS_OIDC_TLS_VERIFICATION=required
 ```
 
-The QUARKUS_OIDC_CREDENTIALS_SECRET must match the Keycloak -> Quarkus Realm -> Clients -> Backend-service -> Credentials -> Secret. For security you should regenerate the secret.
-The frontend-client does not have a credentials secret because it's configured with "Access Type" set to "public". This is necessary because JavaScript based clients have no secure
-way to store the credentials. It's necessary to take additional security precautions for this reason. In particular, you should make sure the "Valid Redirect URIs" field is as specific
-as possible (so don't use * by itself for instance).
+The `QUARKUS_OIDC_CREDENTIALS_SECRET` must match the `Keycloak -> Quarkus Realm -> Clients -> Backend-service -> Credentials -> Secret`. For security you should regenerate the secret. The frontend-client does not have a credentials secret because it's configured with "Access Type" set to "public". This is necessary because JavaScript based clients have no secure way to store the credentials. It's necessary to take additional security precautions for this reason. In particular, you should make sure the `Valid Redirect URIs` field is as specific as possible (so don't use `*` by itself for instance).
 
 ## Maven settings.xml example:
 
@@ -103,26 +96,20 @@ as possible (so don't use * by itself for instance).
 </settings>
 ```
 
-You'll of course want to change the value of "https://your.keycloak.server" to whatever your Keycloak server URL is.
+You'll of course want to change the value of `https://your.keycloak.server` to whatever your Keycloak server URL is.
 
-The token replacements are done to help you get started quickly, and also to remove dependencies on the project location, 
-and site specific URLs. However, there is one side effect; the tokens don't get replaced at runtime by the quarkus hot-deploy
-stuff, and this often causes server crashes. A workaround is to put variables that are developer specific in your
-$HOME/.m2/settings.xml file and ${project.basedir}/.env files. The settings.xml file is used for maven variable replacements
-during compile time, and the .env file holds environment variables that Quarkus reads during startup. The environment
-variables can be used to override settings in the src/main/resources/application.properties file. You can also override
-these properties with -Dpropname=propvalue on the command line.
+The token replacements are done to help you get started quickly, and also to remove dependencies on the project location, and site specific URLs. However, there is one side effect; the tokens don't get replaced at runtime by the quarkus hot-deploy stuff, and this often causes server crashes. A workaround is to put variables that are developer specific in your`$HOME/.m2/settings.xml` file and `${project.basedir}/.env` files.The `settings.xml` file is used for maven variable replacements during compile time, and the `.env` file holds environment variables that Quarkus reads during startup. The environment variables can be used to override settings in the `src/main/resources/application.properties` file. You can also override these properties with `-Dpropname=propvalue` on the command line.
 
 # The web client front-end configuration (src/main/resources/META-INF/resources)
 
-You'll need to login to your Keycloak server as a user with the admin role and switch to the Quarkus realm. The Keycloak server
-that's run by quarkus:dev uses "admin" as a username, and "admin" as the password. Once you're logged in, create a new client
-called frontend-client using openid-connect as the client protocol. In the "Valid Redirect URIs" field, type `"http://localhost:8080/*"`,
+You'll need to login to your Keycloak server as a user with the `admin` role and switch to the Quarkus realm. The Keycloak server
+that's run by `quarkus:dev` uses `admin` as a username, and `admin` as the password. Once you're logged in, create a new client
+called `frontend-client` using `openid-connect` as the client protocol. In the `Valid Redirect URIs` field, type `http://localhost:8080/*`,
 or whatever your web service URL is running under. This tells the Keycloak server that it's okay to redirect the user back to
-`"http://localhost:8080/*"` after successful authentication. This is very important for security that it match the web client URL.
+`http://localhost:8080/*` after successful authentication. This is very important for security that it match the web client URL.
 
-The "Installation" section under each client in Keycloak allows you to generate various client configurations. The proper one for
-this application would be to select "Keycloak OIDC JSON". The file below is what I have placed in the src/main/resources/META-INF/resources
+The `Installation` section under each client in Keycloak allows you to generate various client configurations. The proper one for
+this application would be to select `Keycloak OIDC JSON`. The file below is what I have placed in the `src/main/resources/META-INF/resources`
 folder:
 
 ```json
@@ -136,37 +123,37 @@ folder:
 }
 ```
 
-The generated version from Keycloak should be pretty close to this, but it will have a hard-coded value for auth-server-url.
-I've replaced that with a ${auth.server.url} variable that gets replaced by maven during the compile phase. The
-$HOME/.m2/settings.xml file is the recommended way to override this setting. See above for an example.
+The generated version from Keycloak should be pretty close to this, but it will have a hard-coded value for `auth-server-url`.
+I've replaced that with a `${auth.server.url}` variable that gets replaced by maven during the compile phase. The
+`$HOME/.m2/settings.xml` file is the recommended way to override this setting. See above for an example.
 
 ## Authentication and Authorization
 
-The application is now fully integrated with authorization servers supporting the Open-ID Connect standard (OIDC for short).
-If you're running docker on your development workstation, all you need to do is run quarkus:dev. It will run a keycloak
+The application is now fully integrated with authorization servers supporting the `Open-ID Connect` standard (`OIDC` for short).
+If you're running docker on your development workstation, all you need to do is run `quarkus:dev`. It will run a keycloak
 server in the background, that's fully provisioned and setup for testing. Be warned, the web client doesn't work with this
-unless you manually edit the web client configuration file (keycloak.json), and the index.html file to point to the keycloak
+unless you manually edit the web client configuration file (`keycloak.json`), and the `index.html` file to point to the keycloak
 server. It may be easier to run keycloak from docker manually, and import the realm file below if you want to use the web client.
 
 If you wish to setup a standalone keycloak server, you can import this realm as a quick-start:
 
-https://github.com/quarkusio/quarkus-quickstarts/blob/main/security-openid-connect-quickstart/config/quarkus-realm.json
+`https://github.com/quarkusio/quarkus-quickstarts/blob/main/security-openid-connect-quickstart/config/quarkus-realm.json`
 
-The file creates a realm with some default passwords that the application has configured in it's application.properties file.
+The file creates a realm with some default passwords that the application has configured in it's `application.properties` file.
 These passwords are very bad, so you might want to update them right away. There's also a client secret that should be
 regenerated.
 
 ### Testing
 
-- The program can be tested with .\mvnw clean compile test, or you can run .\mvnw clean compile quarkus:dev and press `<o>` to show the test output, followed by `<r>` to run the tests.
-- An alternative way of testing that involves the Keycloak (OIDC) server is to run the test_access.ps1 script. There are now also separate scripts to start/stop/download and delete.
+- The program can be tested with `.\mvnw clean compile test`, or you can run `.\mvnw clean compile quarkus:dev` and press `<o>` to show the test output, followed by `<r>` to run the tests.
+- An alternative way of testing that involves the Keycloak (OIDC) server is to run the `test_access.ps1` script. There are now also separate scripts to start/stop/download and delete.
 
-(Install the jq JSON query client using one of the preferred methods. I used the chocolatey package manager to install mine.)
+(Install the `jq` JSON query client using one of the preferred methods. I used the chocolatey package manager to install mine.)
 
-Using the HttPie client to get an access token from the test keycloak server:
+Using the `HttPie` client to get an access token from the test keycloak server:
 
 - Getting the access token from the Keycloak server returns it's response in JSON format, so you need to use jq to extract the access_token, or you need to cut and paste yourself. However, the access tokens only last 5 minutes, so be quick!
-- There's a test_access.ps1 PowerShell script in the top level directory which can be used for testing, or as an example for developing your own scripts.
+- There's a `test_access.ps1` PowerShell script in the top level directory which can be used for testing, or as an example for developing your own scripts.
 
 ## Running the application in dev mode
 
