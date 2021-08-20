@@ -17,9 +17,10 @@
 
 package com.rtds;
 
-import com.rtds.dto.DumpcapProcessDto;
+import com.rtds.view.DumpcapProcessDefaultView;
 import com.rtds.jpa.DumpcapProcess;
 import com.rtds.svc.DumpcapDbService;
+import com.rtds.svc.UserPreferenceService;
 import io.quarkus.security.identity.SecurityIdentity;
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -38,10 +39,14 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.resteasy.annotations.cache.NoCache;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Path("/api/capture" )
 public class PacketCaptureResource
 {
+    private static final Logger logger = LoggerFactory.getLogger( PacketCaptureResource.class );
+    
     @ConfigProperty(name = "start-capture-script")
     String startCaptureScript;
     
@@ -49,7 +54,32 @@ public class PacketCaptureResource
     DumpcapDbService dumpcapDbService;
     
     @Inject
+    UserPreferenceService userPreferenceService;
+    
+    @Inject
     SecurityIdentity identity;
+    
+    @PUT
+    @Path("/toggleAllUsers")
+    @RolesAllowed("admin")
+    public Response toggleAllUsers()
+    {
+        Optional<String> principal_name = getPrincipalName();
+        
+        boolean all_users = userPreferenceService.getBooleanUserPreferenceValue( principal_name.get(), "all_users", false );
+        
+        userPreferenceService.setBooleanPreferenceValue( principal_name.get(), "all_users", !all_users );
+        
+        return Response.ok().build();
+    }
+    
+    @GET
+    @Path("/isAdmin")
+    @RolesAllowed("user")
+    public Response isAdmin()
+    {
+        return Response.ok( identity.hasRole( "admin" ) ).build();
+    }
     
     @POST
     @Path("/all")
@@ -145,11 +175,14 @@ public class PacketCaptureResource
             pid = Long.parseLong( length_string.trim() );
         }
         
+        Optional<SecurityIdentity> sidentity = Optional.ofNullable( identity );
+        Optional<String> principal_name = sidentity.map( sid -> sid.getPrincipal() ).map( p -> p.getName() );
+        
         // Store the process information, file path and the name of the user in
         // the database. This will be used later to lookup the process ID, and
         // to remove the capture file.
         
-        UUID dbid = dumpcapDbService.createDumpcapProcess(pid, path.toString(), type, getPrincipalName() );
+        UUID dbid = dumpcapDbService.createDumpcapProcess(pid, path.toString(), type, principal_name );
         
         return Response.ok( dbid ).build();
     }
@@ -192,13 +225,7 @@ public class PacketCaptureResource
     @NoCache
     public Response list()
     {
-        // First, remove the items for the database for which there are no files.
-        // This is necessary because sometimes files are manually deleted, and
-        // other times the deletion fails, but then succeeds later.
-        
-//        dumpcapDbService.removeDeletedFilesFromDb(); // Sometimes causes Optimistic Locking Exceptions.
-        
-        List<DumpcapProcessDto> capture_ids = dumpcapDbService.list( getPrincipalName() );
+        List<DumpcapProcessDefaultView> capture_ids = dumpcapDbService.list( getPrincipalName() );
         
         return Response.ok( capture_ids ).build();
     }
@@ -247,10 +274,15 @@ public class PacketCaptureResource
         {
             boolean deleted = file.delete();
             
-            if( deleted )
+            if( deleted || proc.getStatus().equalsIgnoreCase( "deleted" ) )
             {
                 dumpcapDbService.deleteDumpcapProcess( UUID.fromString( id ), getPrincipalName() );
             }
+        }
+        else
+        {
+            logger.error( "Deleting non-existent capture {} from database. Path {} does not exist.", proc.getId(), proc.getPathName() );
+            dumpcapDbService.deleteDumpcapProcess( UUID.fromString( id ), getPrincipalName() );
         }
         
         // Following the REST Semantics demand that a DELETE operation
@@ -258,12 +290,28 @@ public class PacketCaptureResource
             
         return Response.ok().build();
     }
-
+    
     private Optional<String> getPrincipalName()
     {
         Optional<SecurityIdentity> sidentity = Optional.ofNullable( identity );
+        Optional<String> principal_name = sidentity.map( sid -> sid.getPrincipal() ).map( p -> p.getName() );
         
-        return sidentity.map( sid -> sid.getPrincipal() ).map( p -> p.getName() );
+        if( allUsers( principal_name ) )
+        {
+            return Optional.empty();
+        }
+        
+        return principal_name;
     }
     
+    private boolean allUsers( Optional<String> principal_name )
+    {
+        if( principal_name.isPresent() )
+        {
+            return userPreferenceService.getBooleanUserPreferenceValue( principal_name.get(), "all_users", false );
+        }
+        
+        return false;
+    }
+
 }

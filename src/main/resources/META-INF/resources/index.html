@@ -2,14 +2,14 @@
 <head>
     <title>keycloak-spa</title>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <script src="${auth.server.url}/auth/js/keycloak.js"></script>
+    <!--<script src="${auth.server.url}/auth/js/keycloak.js"></script>-->
+    <script src="https://keycloak.rtds.com/auth/js/keycloak.js"></script>
     <style>
         table, th, td {
             padding: 5px;
         }
         tr:nth-child(even) { background-color: #f2f2f2; }
     </style>
-    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5/jquery.min.js"></script>
     <script>
         var keycloak = new Keycloak();
         keycloak.init({onLoad: 'login-required'}).then(function () {
@@ -17,6 +17,7 @@
             console.log('User ' + username + ' is now authenticated.');
             let usernameDiv = document.getElementById('username');
             usernameDiv.innerHTML = 'Logged in as: ' + username;
+            updateAllUsersButton();
             setInterval( () => {
                 listCaptures();
             }, 2000 );
@@ -104,6 +105,37 @@
                     deleteBtn.disabled = false;
                 }
             }
+        }
+        function toggleAllUsers() {
+            axios({
+                method: 'put',
+                url: '/api/user/toggleAllUsers',
+                headers: {
+                    'Authorization': 'Bearer ' + keycloak.token
+                }
+            })
+            .then( response => {
+                console.log('All Users preference toggled for user', keycloak.idTokenParsed.preferred_username );
+            } )
+            .catch( error => {
+                console.log( error );
+            } );
+        }
+        function updateAllUsersButton() {
+            axios({
+                method: 'get',
+                url: '/api/user/isAdmin',
+                headers: {
+                    'Authorization': 'Bearer ' + keycloak.token
+                }
+            })
+            .then( response => {
+                let allUsersButton = document.getElementById('allUsersButton');
+                allUsersButton.hidden = !response.data;
+            } )
+            .catch( error => {
+                console.log( error );
+            } );
         }
         function listCaptures() {
             axios({
@@ -203,6 +235,7 @@
     <button onclick="startCapture('goose')">Start Goose Capture</button>
     <button onclick="startCapture('gse')">Start GSE Capture</button>
     <button onclick="startCapture('sv')">Start SV Capture</button>
+    <button id="allUsersButton" onclick="toggleAllUsers()">Toggle All Users</button>
     <button onclick="logout()">Logout</button>
     <div id="username"></div>
     <table id="mytable" style="padding: 1em;">

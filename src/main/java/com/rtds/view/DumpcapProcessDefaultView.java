@@ -14,8 +14,7 @@
  *   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
  *   DAMAGE.
  */
-
-package com.rtds.dto;
+package com.rtds.view;
 
 import com.rtds.jpa.DumpcapProcess;
 import java.io.IOException;
@@ -29,20 +28,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *  Data transfer object for the DumpcapProcess JPA entity.
- * 
- *  The intention of this object is to allow the exposure of some, but
- *  not all of the DumpcapProcess attributes, as well as some of the
- *  file meta-data, such as length. The path itself is not represented
- *  because the user doesn't need to know what it is. They only need the
- *  UUID value. The other attributes might be useful to the user, and don't
- *  give away anything that's security sensitive.
- * 
+ * Data transfer object for the DumpcapProcess JPA entity.
+ *
+ * The intention of this object is to allow the exposure of some, but not all of
+ * the DumpcapProcess attributes, as well as some of the file meta-data, such as
+ * length. The path itself is not represented because the user doesn't need to
+ * know what it is. They only need the UUID value. The other attributes might be
+ * useful to the user, and don't give away anything that's security sensitive.
+ *
  * @author jdh
  */
-public class DumpcapProcessDto
+public class DumpcapProcessDefaultView
 {
-    private Logger logger = LoggerFactory.getLogger( DumpcapProcessDto.class );
+
+    private Logger logger = LoggerFactory.getLogger(DumpcapProcessDefaultView.class );
 
     private UUID id;
     private String type;
@@ -51,19 +50,19 @@ public class DumpcapProcessDto
     private Instant lastModifiedTime;
     private Long length;
 
-    public DumpcapProcessDto(DumpcapProcess proc)
+    public DumpcapProcessDefaultView( DumpcapProcess proc )
     {
         this.id = proc.getId();
         this.status = proc.getStatus();
         this.type = proc.getType();
 
-        Path path = Paths.get(proc.getPathName());
+        Path path = Paths.get( proc.getPathName() );
 
         try
         {
             if( path.toFile().exists() )
             {
-                BasicFileAttributes attr = Files.readAttributes(path, BasicFileAttributes.class);
+                BasicFileAttributes attr = Files.readAttributes( path, BasicFileAttributes.class );
 
                 this.creationTime = attr.creationTime().toInstant();
                 this.lastModifiedTime = attr.lastModifiedTime().toInstant();
@@ -85,7 +84,7 @@ public class DumpcapProcessDto
         return id;
     }
 
-    public void setId(UUID id)
+    public void setId( UUID id )
     {
         this.id = id;
     }
@@ -105,7 +104,7 @@ public class DumpcapProcessDto
         return status;
     }
 
-    public void setStatus(String status)
+    public void setStatus( String status )
     {
         this.status = status;
     }

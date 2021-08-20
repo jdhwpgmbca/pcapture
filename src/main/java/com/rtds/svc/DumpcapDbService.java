@@ -5,7 +5,8 @@
  */
 package com.rtds.svc;
 
-import com.rtds.dto.DumpcapProcessDto;
+import com.rtds.view.DumpcapProcessDefaultView;
+import com.rtds.view.DumpcapProcessUserView;
 import com.rtds.jpa.DumpcapProcess;
 import java.io.File;
 import java.util.List;
@@ -54,11 +55,11 @@ public class DumpcapDbService
     {
         DumpcapProcess proc = em.find( DumpcapProcess.class, id );
         
-        if( proc != null && proc.getUid() != null && uid.isPresent() && uid.get().equals( proc.getUid() ) )
+        if( uid.isPresent() && proc != null && uid.get().equals( proc.getUid() ) )
         {
             proc.setStatus( "stopped" );
         }
-        else if( proc != null && proc.getUid() == null && uid.isEmpty() )
+        else if( uid.isEmpty() && proc != null )
         {
             proc.setStatus( "stopped" );
         }
@@ -68,11 +69,11 @@ public class DumpcapDbService
     {
         DumpcapProcess proc = em.find( DumpcapProcess.class, id );
         
-        if( proc != null && proc.getUid() != null && uid.isPresent() && uid.get().equals( proc.getUid() ) )
+        if( uid.isPresent() && proc != null && uid.get().equals( proc.getUid() ) )
         {
             em.remove( proc );
         }
-        else if( proc != null && proc.getUid() == null && uid.isEmpty() )
+        else if( uid.isEmpty() && proc != null )
         {
             em.remove( proc );
         }
@@ -82,11 +83,11 @@ public class DumpcapDbService
     {
         DumpcapProcess proc = em.find( DumpcapProcess.class, id );
         
-        if( proc != null && proc.getUid() != null && uid.isPresent() && uid.get().equals( proc.getUid() ) )
+        if( uid.isPresent() && proc != null && uid.get().equals( proc.getUid() ) )
         {
             return proc;
         }
-        else if( proc != null && proc.getUid() == null && uid.isEmpty() )
+        else if( uid.isEmpty() )
         {
             return proc;
         }
@@ -94,7 +95,7 @@ public class DumpcapDbService
         return null;
     }
     
-    public List<DumpcapProcessDto> list( Optional<String> uid )
+    public List<DumpcapProcessDefaultView> list( Optional<String> uid )
     {
         if( uid.isPresent() )
         {
@@ -102,7 +103,7 @@ public class DumpcapDbService
                     .setParameter( "uid", uid.get() )
                     .getResultList()
                     .stream()
-                    .map( p -> new DumpcapProcessDto( p ) )
+                    .map(p -> new DumpcapProcessDefaultView( p ) )
                     .filter( dto -> !dto.getStatus().equals( "deleted" ) )
                     .collect( Collectors.toList() );
         }
@@ -112,6 +113,12 @@ public class DumpcapDbService
         }
     }
     
+    public List<DumpcapProcessDefaultView> listAll()
+    {
+        return em.createQuery( "select proc from DumpcapProcess proc", DumpcapProcess.class ).
+                getResultList().stream().map(p -> new DumpcapProcessUserView( p ) ).collect( Collectors.toList() );
+    }
+
     public void removeDeletedFilesFromDb()
     {
             List<DumpcapProcess> deleted_list = em.createQuery( "select proc from DumpcapProcess proc", DumpcapProcess.class )
@@ -123,10 +130,4 @@ public class DumpcapDbService
             deleted_list.forEach( proc -> em.remove( proc ) );
     }
     
-    public List<DumpcapProcessDto> listAll()
-    {
-        return em.createQuery( "select proc from DumpcapProcess proc", DumpcapProcess.class ).
-                getResultList().stream().map( p -> new DumpcapProcessDto( p ) ).collect( Collectors.toList() );
-    }
-
 }
