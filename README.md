@@ -14,6 +14,8 @@ If you want to learn more about Quarkus, please visit its website: https://quark
 
 - At this point the web service must tie in with a an `OpenID-connect` authentication server like `Keycloak`.
 - There is now a rudimentary web-based user interface that allows you to start/stop/download/delete captures.
+- There is also now an `admin` mode for people that have been assigned an `admin` role in Keycloak. Admin users can see the captures of other people, stop them, download them and delete them.
+- Non-admin users can only start/stop/delete/download their own captures.
 - I suggest that you create a settings.xml file in your maven `$HOME/.m2` directory to store the `${auth.server.url}` property which should point to your keycloak server. See below for an example.
 - I also suggest you create a `.env` file in the top level project directory. This holds environment settings for Quarkus when running from the local folder (does *NOT* affect production jar).
 - The program now works on both Windows and Linux.
