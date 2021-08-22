@@ -27,6 +27,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.Optional;
@@ -58,28 +60,6 @@ public class PacketCaptureResource
     
     @Inject
     SecurityIdentity identity;
-    
-    @PUT
-    @Path("/toggleAllUsers")
-    @RolesAllowed("admin")
-    public Response toggleAllUsers()
-    {
-        Optional<String> principal_name = getPrincipalName();
-        
-        boolean all_users = userPreferenceService.getBooleanUserPreferenceValue( principal_name.get(), "all_users", false );
-        
-        userPreferenceService.setBooleanPreferenceValue( principal_name.get(), "all_users", !all_users );
-        
-        return Response.ok().build();
-    }
-    
-    @GET
-    @Path("/isAdmin")
-    @RolesAllowed("user")
-    public Response isAdmin()
-    {
-        return Response.ok( identity.hasRole( "admin" ) ).build();
-    }
     
     @POST
     @Path("/all")
@@ -119,6 +99,15 @@ public class PacketCaptureResource
     
     public Response startCapture( String filter, String type ) throws IOException, GeneralSecurityException
     {
+        java.nio.file.Path script_path = java.nio.file.Path.of( startCaptureScript );
+        
+        logger.info(  "startCaptureScript path {}", startCaptureScript );
+        
+        if( Files.notExists( script_path, LinkOption.NOFOLLOW_LINKS ) )
+        {
+            logger.error( "startCaptureScript can't be found in specified location {}", startCaptureScript );
+        }
+        
         java.nio.file.Path path = java.nio.file.Files.createTempFile( "wireshark-capture-", ".pcapng" );
         
         // This now works on Windows and Ubuntu Linux!
@@ -294,9 +283,10 @@ public class PacketCaptureResource
     private Optional<String> getPrincipalName()
     {
         Optional<SecurityIdentity> sidentity = Optional.ofNullable( identity );
+        Optional<Boolean> admin = sidentity.map( id -> id.hasRole( "admin" ) );
         Optional<String> principal_name = sidentity.map( sid -> sid.getPrincipal() ).map( p -> p.getName() );
         
-        if( allUsers( principal_name ) )
+        if( allUsers( principal_name ) && admin.isPresent() && admin.get() == true )
         {
             return Optional.empty();
         }

@@ -16,9 +16,18 @@
     <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
     <quarkus.platform.version>2.1.2.Final</quarkus.platform.version>
     <surefire-plugin.version>3.0.0-M5</surefire-plugin.version>
-    <auth.server.url>https://your.keycloak.server</auth.server.url>
-    <docker.registry>your.docker.registry:1234</docker.registry>
-    <docker.group>your_initials</docker.group>
+    
+    <auth.server-url>https://your.keycloak.server</auth.server-url>
+    <auth.realm>your-keycloak-realm</auth.realm>
+    
+    <auth.frontend.ssl-required>external</auth.frontend.ssl-required>
+    <auth.frontend.client-id>frontend-client</auth.frontend.client-id>
+    <auth.frontend.client-confidential-port>8443</auth.frontend.client-confidential-port>
+    
+    <auth.backend.client-id>backend-service</auth.backend.client-id>
+    <auth.backend.secret>secret</auth.backend.secret>
+    <auth.backend.tls-verification>required</auth.backend.tls-verification>
+    
     <datasource.jdbc.url>jdbc:h2:file:${project.basedir}/h2db</datasource.jdbc.url>
     <datasource.jdbc.test.url>jdbc:h2:mem:test</datasource.jdbc.test.url>
     <start-capture-script>${project.basedir}/src/main/resources/startCaptureScript.ps1</start-capture-script>
@@ -64,10 +73,6 @@
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-hibernate-orm</artifactId>
     </dependency>
-    <!-- <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-container-image-jib</artifactId>
-    </dependency> -->
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-junit5</artifactId>

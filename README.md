@@ -57,6 +57,8 @@ Sometimes a database schema upgrade may be necessary, and I haven't integrated f
 (This file configures the back-end web service, it doesn't affect the web client.)
 
 ```shell script
+# These are Quarkus environment overrides, they have nothing to do with Apache Maven.
+# They are used at runtime to override properties in application.properties.
 QUARKUS_OIDC_AUTH_SERVER_URL=https://your.keycloak.server/auth/realms/quarkus
 QUARKUS_OIDC_CLIENT_ID=backend-service
 QUARKUS_OIDC_CREDENTIALS_SECRET=your-oidc-credentials-secret
@@ -78,56 +80,43 @@ The `QUARKUS_OIDC_CREDENTIALS_SECRET` must match the `Keycloak -> Quarkus Realm 
         <profile>
             <id>keycloak</id>
             <properties>
-                <auth.server.url>https://your.keycloak.server</auth.server.url>
-            </properties>
-        </profile>
-        <profile>
-            <id>docker</id>
-            <properties>
-                <docker.registry>your.docker.registry:4567</docker.registry>
-                <docker.group>somegroup</docker.group>
+                <auth.server-url>https://your.keycloak.server</auth.server-url>
+                <auth.realm>your-keycloak-realm</auth.realm>
+                
+                <!--<auth.frontend.ssl-required>external</auth.frontend.ssl-required>-->
+                <!--<auth.frontend.client-id>frontend-client</auth.frontend.client-id>-->
+                <auth.frontend.client-confidential-port>443</auth.frontend.client-confidential-port>
+                
+                <!--<auth.backend.client-id>backend-service</auth.backend.client-id>-->
+                <auth.backend.secret>your-keycloak-backend-secret</auth.backend.secret>
+                <!--<auth.backend.tls-verification>required</auth.backend.tls-verification>-->
             </properties>
         </profile>
     </profiles>
 
     <activeProfiles>
         <activeProfile>keycloak</activeProfile>
-        <activeProfile>docker</activeProfile>
     </activeProfiles>
 
 </settings>
 ```
 
-You'll of course want to change the value of `https://your.keycloak.server` to whatever your Keycloak server URL is.
+You'll of course want to change the value of `https://your.keycloak.server`, and probably also `your-keycloak-backend-secret` to whatever your Keycloak server URL is using.
 
 The token replacements are done to help you get started quickly, and also to remove dependencies on the project location, and site specific URLs. However, there is one side effect; the tokens don't get replaced at runtime by the quarkus hot-deploy stuff, and this often causes server crashes. A workaround is to put variables that are developer specific in your`$HOME/.m2/settings.xml` file and `${project.basedir}/.env` files.The `settings.xml` file is used for maven variable replacements during compile time, and the `.env` file holds environment variables that Quarkus reads during startup. The environment variables can be used to override settings in the `src/main/resources/application.properties` file. You can also override these properties with `-Dpropname=propvalue` on the command line.
 
-# The web client front-end configuration (src/main/resources/META-INF/resources)
+# Configuring the Web client in Keycloak
 
 You'll need to login to your Keycloak server as a user with the `admin` role and switch to the Quarkus realm. The Keycloak server
 that's run by `quarkus:dev` uses `admin` as a username, and `admin` as the password. Once you're logged in, create a new client
 called `frontend-client` using `openid-connect` as the client protocol. In the `Valid Redirect URIs` field, type `http://localhost:8080/*`,
 or whatever your web service URL is running under. This tells the Keycloak server that it's okay to redirect the user back to
-`http://localhost:8080/*` after successful authentication. This is very important for security that it match the web client URL.
+`http://localhost:8080/*` after successful authentication. This is very important for security that it match the web client URL. Also, for
+the `Web Origins` section, add a single line containing only the `+` sign. Of course later when you deploy this to production, you'll need
+to change these URL's to a public, or at least corporate facing URL.
 
-The `Installation` section under each client in Keycloak allows you to generate various client configurations. The proper one for
-this application would be to select `Keycloak OIDC JSON`. The file below is what I have placed in the `src/main/resources/META-INF/resources`
-folder:
-
-```json
-{
-  "realm": "quarkus",
-  "auth-server-url": "${auth.server.url}/auth/",
-  "ssl-required": "external",
-  "resource": "frontend-client",
-  "public-client": true,
-  "confidential-port": 0
-}
-```
-
-The generated version from Keycloak should be pretty close to this, but it will have a hard-coded value for `auth-server-url`.
-I've replaced that with a `${auth.server.url}` variable that gets replaced by maven during the compile phase. The
-`$HOME/.m2/settings.xml` file is the recommended way to override this setting. See above for an example.
+There used to be a file called keycloak.json that had to be configured for the client. Now that file is generated automatically and is available
+at /api/res/configjson. It's a public URL, and is not protected, and it doesn't need to be.
 
 ## Authentication and Authorization
 

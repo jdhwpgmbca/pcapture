@@ -103,8 +103,8 @@ public class DumpcapDbService
                     .setParameter( "uid", uid.get() )
                     .getResultList()
                     .stream()
-                    .map(p -> new DumpcapProcessDefaultView( p ) )
-                    .filter( dto -> !dto.getStatus().equals( "deleted" ) )
+                    .map( p -> new DumpcapProcessDefaultView( p ) )
+                    .filter( view -> !view.getStatus().equals( "deleted" ) )
                     .collect( Collectors.toList() );
         }
         else
