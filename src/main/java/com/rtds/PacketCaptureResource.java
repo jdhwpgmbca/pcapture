@@ -76,7 +76,7 @@ public class PacketCaptureResource
     @RolesAllowed("user")
     public Response startGooseCapture() throws IOException, GeneralSecurityException
     {
-        return startCapture( "ether proto 0x99B8", "Goose" );
+        return startCapture( "ether proto 0x88B8", "Goose" );
     }
     
     @POST
@@ -85,7 +85,7 @@ public class PacketCaptureResource
     @RolesAllowed("user")
     public Response startGSECapture() throws IOException, GeneralSecurityException
     {
-        return startCapture( "ether proto 0x99B9", "GSE" );
+        return startCapture( "ether proto 0x88B9", "GSE" );
     }
     
     @POST
