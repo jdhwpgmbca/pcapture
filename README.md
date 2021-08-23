@@ -63,6 +63,8 @@ QUARKUS_OIDC_AUTH_SERVER_URL=https://your.keycloak.server/auth/realms/quarkus
 QUARKUS_OIDC_CLIENT_ID=backend-service
 QUARKUS_OIDC_CREDENTIALS_SECRET=your-oidc-credentials-secret
 QUARKUS_OIDC_TLS_VERIFICATION=required
+TEST_USER_NAME=alice
+TEST_USER_PASSWORD=alice
 ```
 
 The `QUARKUS_OIDC_CREDENTIALS_SECRET` must match the `Keycloak -> Quarkus Realm -> Clients -> Backend-service -> Credentials -> Secret`. For security you should regenerate the secret. The frontend-client does not have a credentials secret because it's configured with "Access Type" set to "public". This is necessary because JavaScript based clients have no secure way to store the credentials. It's necessary to take additional security precautions for this reason. In particular, you should make sure the `Valid Redirect URIs` field is as specific as possible (so don't use `*` by itself for instance).

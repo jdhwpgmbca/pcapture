@@ -17,7 +17,7 @@ if (Test-Path .env) {
 
 if($ENV:QUARKUS_OIDC_AUTH_SERVER_URL -and $ENV:QUARKUS_OIDC_CREDENTIALS_SECRET) {
 
-    $access_token=(http -a backend-service:$ENV:QUARKUS_OIDC_CREDENTIALS_SECRET --form POST $ENV:QUARKUS_OIDC_AUTH_SERVER_URL/protocol/openid-connect/token username=alice password='alice' grant_type=password | jq --raw-output '.access_token')
+    $access_token=(http -a backend-service:"$ENV:QUARKUS_OIDC_CREDENTIALS_SECRET" --form POST "$ENV:QUARKUS_OIDC_AUTH_SERVER_URL/protocol/openid-connect/token" username="$ENV:TEST_USER_NAME" password="$ENV:TEST_USER_PASSWORD" grant_type=password | jq --raw-output '.access_token')
 
 } else {
 
