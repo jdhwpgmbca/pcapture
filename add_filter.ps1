@@ -67,6 +67,7 @@ http POST :8080/api/filter "Authorization:Bearer $access_token" label="Start Gen
 http POST :8080/api/filter "Authorization:Bearer $access_token" label="Start Goose Capture" urlSuffix=goose captureFilter="ether proto 0x88B8"
 http POST :8080/api/filter "Authorization:Bearer $access_token" label="Start GSE Capture" urlSuffix=gse captureFilter="ether proto 0x88B9"
 http POST :8080/api/filter "Authorization:Bearer $access_token" label="Start SV Capture" urlSuffix=sv captureFilter="ether proto 0x88BA"
+http POST :8080/api/filter "Authorization:Bearer $access_token" label="Start PTP Capture" urlSuffix=ptp captureFilter="ether proto 0x88F7"
 
 # Write-Host "Listing capture filters"
 
