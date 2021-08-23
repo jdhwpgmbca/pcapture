@@ -48,11 +48,37 @@ if($ENV:QUARKUS_OIDC_AUTH_SERVER_URL -and $ENV:QUARKUS_OIDC_CREDENTIALS_SECRET) 
 
 }
 
-Write-Host "Starting capture"
+# Write-Host "Listing capture filters"
 
-# One thing to keep in mind: All of these scripts use what's called a "Direct Access Grant". If you turn that off in Keycloak for the backend-service client,
+# http -b GET :8080/api/filter "Authorization:Bearer $access_token"
+
+Write-Host "Adding capture filters for Generic, Goose, GSE, and SV"
+
+# Notice how the captureFilter:=null uses a colon in the assignment. This means it's raw JSON, it's used for non-text JSON values like numbers, true/false, and null.
+# This *MUST* be run as a user with the admin role assigned in Keycloak. Check the user above that's being used to obtain the access token. The user and their role
+# mapping in Keycloak will determine the access they have. The roles themselves are created in the Roles section under the Keycloak realm. So if you wanted to, you
+# could create a role called 'filter_maintainer', and change the @RolesAllowed annotations in the PacketFilterResource to "filter_maintainer". That way all users
+# with the "filter_maintainer role would be able to add/remove and list capture filters.
+# 
+# One other thing to keep in mind: All of these scripts use what's called a "Direct Access Grant". If you turn that off in Keycloak for the backend-service client,
 # it will block these scripts from running. But the users will still be able to use the frontend-client web page, because that's considered the "Standard Flow".
 
-$dbid=(http -b POST :8080/api/capture/goose "Authorization:Bearer $access_token")
+http POST :8080/api/filter "Authorization:Bearer $access_token" label="Start Generic Capture" urlSuffix=all captureFilter:=null
+http POST :8080/api/filter "Authorization:Bearer $access_token" label="Start Goose Capture" urlSuffix=goose captureFilter="ether proto 0x88B8"
+http POST :8080/api/filter "Authorization:Bearer $access_token" label="Start GSE Capture" urlSuffix=gse captureFilter="ether proto 0x88B9"
+http POST :8080/api/filter "Authorization:Bearer $access_token" label="Start SV Capture" urlSuffix=sv captureFilter="ether proto 0x88BA"
 
-Write-Host "Capture ID is $dbid"
+# Write-Host "Listing capture filters"
+
+# http -b GET :8080/api/filter "Authorization:Bearer $access_token"
+
+# Write-Host "Deleting capture filters"
+
+# http DELETE :8080/api/filter/all "Authorization:Bearer $access_token"
+# http DELETE :8080/api/filter/goose "Authorization:Bearer $access_token"
+# http DELETE :8080/api/filter/gse "Authorization:Bearer $access_token"
+# http DELETE :8080/api/filter/sv "Authorization:Bearer $access_token"
+
+Write-Host "Listing capture filters again"
+
+http -b GET :8080/api/filter "Authorization:Bearer $access_token"

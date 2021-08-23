@@ -50,6 +50,9 @@ if($ENV:QUARKUS_OIDC_AUTH_SERVER_URL -and $ENV:QUARKUS_OIDC_CREDENTIALS_SECRET) 
 
 Write-Host "Starting capture"
 
+# One thing to keep in mind: All of these scripts use what's called a "Direct Access Grant". If you turn that off in Keycloak for the backend-service client,
+# it will block these scripts from running. But the users will still be able to use the frontend-client web page, because that's considered the "Standard Flow".
+
 $dbid=(http -b POST :8080/api/capture/sv "Authorization:Bearer $access_token")
 
 Write-Host "Capture ID is $dbid"

@@ -28,6 +28,13 @@
     <auth.backend.secret>secret</auth.backend.secret>
     <auth.backend.tls-verification>required</auth.backend.tls-verification>
     
+    <tls.keystore-file></tls.keystore-file>
+    <tls.keystore-password></tls.keystore-password>
+    <tls.ssl-port></tls.ssl-port>
+    
+    <quarkus.http.port>8080</quarkus.http.port>
+    <quarkus.http.test.port>8081</quarkus.http.test.port>
+    
     <datasource.jdbc.url>jdbc:h2:file:${project.basedir}/h2db</datasource.jdbc.url>
     <datasource.jdbc.test.url>jdbc:h2:mem:test</datasource.jdbc.test.url>
     <start-capture-script>${project.basedir}/src/main/resources/startCaptureScript.ps1</start-capture-script>
@@ -118,6 +125,22 @@
           <include>**/*.json</include>
           <include>**/*.html</include>
         </includes>
+      </resource>
+      <resource>
+          <filtering>false</filtering>
+          <directory>src/main/win64svc</directory>
+          <targetPath>win64svc</targetPath>
+          <excludes>
+              <exclude>*.xml</exclude>
+          </excludes>
+      </resource>
+      <resource>
+          <filtering>true</filtering>
+          <directory>src/main/win64svc</directory>
+          <targetPath>win64svc</targetPath>
+          <includes>
+              <include>**/*.xml</include>
+          </includes>
       </resource>
     </resources>
     <testResources>

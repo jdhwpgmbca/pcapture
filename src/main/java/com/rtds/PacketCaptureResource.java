@@ -19,6 +19,7 @@ package com.rtds;
 
 import com.rtds.view.DumpcapProcessDefaultView;
 import com.rtds.jpa.DumpcapProcess;
+import com.rtds.svc.CaptureTypeService;
 import com.rtds.svc.DumpcapDbService;
 import com.rtds.svc.UserPreferenceService;
 import io.quarkus.security.identity.SecurityIdentity;
@@ -59,42 +60,20 @@ public class PacketCaptureResource
     UserPreferenceService userPreferenceService;
     
     @Inject
+    CaptureTypeService captureTypeService;
+    
+    @Inject
     SecurityIdentity identity;
     
     @POST
-    @Path("/all")
+    @Path("/{type}")
     @Produces( MediaType.TEXT_PLAIN )
     @RolesAllowed("user")
-    public Response startGenericCapture() throws IOException, GeneralSecurityException
+    public Response startTypedCapture( @PathParam("type") String type ) throws IOException, GeneralSecurityException
     {
-        return startCapture( null, "All" );
-    }
-    
-    @POST
-    @Path("/goose")
-    @Produces( MediaType.TEXT_PLAIN )
-    @RolesAllowed("user")
-    public Response startGooseCapture() throws IOException, GeneralSecurityException
-    {
-        return startCapture( "ether proto 0x99B8", "Goose" );
-    }
-    
-    @POST
-    @Path("/gse")
-    @Produces( MediaType.TEXT_PLAIN )
-    @RolesAllowed("user")
-    public Response startGSECapture() throws IOException, GeneralSecurityException
-    {
-        return startCapture( "ether proto 0x99B9", "GSE" );
-    }
-    
-    @POST
-    @Path("/sv")
-    @Produces( MediaType.TEXT_PLAIN )
-    @RolesAllowed("user")
-    public Response startSvCapture() throws IOException, GeneralSecurityException
-    {
-        return startCapture( "ether proto 0x88BA", "SV" );
+        String filter = captureTypeService.findFilter( type );
+        
+        return startCapture( filter, type );
     }
     
     public Response startCapture( String filter, String type ) throws IOException, GeneralSecurityException
