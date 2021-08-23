@@ -42,3 +42,5 @@ nb-configuration.xml
 *.db
 
 .env.disabled
+
+win64service/
