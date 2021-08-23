@@ -63,11 +63,11 @@ Write-Host "Adding capture filters for Generic, Goose, GSE, and SV"
 # One other thing to keep in mind: All of these scripts use what's called a "Direct Access Grant". If you turn that off in Keycloak for the backend-service client,
 # it will block these scripts from running. But the users will still be able to use the frontend-client web page, because that's considered the "Standard Flow".
 
-http POST :8080/api/filter "Authorization:Bearer $access_token" label="Start Generic Capture" urlSuffix=all captureFilter:=null
-http POST :8080/api/filter "Authorization:Bearer $access_token" label="Start Goose Capture" urlSuffix=goose captureFilter="ether proto 0x88B8"
-http POST :8080/api/filter "Authorization:Bearer $access_token" label="Start GSE Capture" urlSuffix=gse captureFilter="ether proto 0x88B9"
-http POST :8080/api/filter "Authorization:Bearer $access_token" label="Start SV Capture" urlSuffix=sv captureFilter="ether proto 0x88BA"
-http POST :8080/api/filter "Authorization:Bearer $access_token" label="Start PTP Capture" urlSuffix=ptp captureFilter="ether proto 0x88F7"
+http -v POST :8080/api/filter "Authorization:Bearer $access_token" label="Start Generic Capture" urlSuffix=all captureFilter:=null
+http -v POST :8080/api/filter "Authorization:Bearer $access_token" label="Start Goose Capture" urlSuffix=goose captureFilter="ether proto 0x88B8"
+http -v POST :8080/api/filter "Authorization:Bearer $access_token" label="Start GSE Capture" urlSuffix=gse captureFilter="ether proto 0x88B9"
+http -v POST :8080/api/filter "Authorization:Bearer $access_token" label="Start SV Capture" urlSuffix=sv captureFilter="ether proto 0x88BA"
+http -v POST :8080/api/filter "Authorization:Bearer $access_token" label="Start PTP Capture" urlSuffix=ptp captureFilter="ether proto 0x88F7"
 
 # Write-Host "Listing capture filters"
 

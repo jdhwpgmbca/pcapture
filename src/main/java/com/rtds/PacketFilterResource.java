@@ -30,7 +30,6 @@ public class PacketFilterResource
     
     @POST
     @RolesAllowed("admin")
-    @Consumes( MediaType.APPLICATION_JSON )
     public void addFilter( CaptureType type )
     {
         captureTypeService.createOrUpdateCaptureType( type );
