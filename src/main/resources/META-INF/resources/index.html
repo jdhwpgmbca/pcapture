@@ -13,6 +13,8 @@
         // dynamically building a <script/> tag, using information I'm fetching
         // from /api/res/configjson.
         var keycloak = null;
+        var timer = null;
+        var autoRefresh = null;
         fetch('/api/res/configjson')
         .then( response => response.json() )
         .then( data => {
@@ -27,9 +29,9 @@
                     let usernameDiv = document.getElementById('username');
                     usernameDiv.innerHTML = 'Logged in as: ' + username;
                     updateAllUsersButton();
-                    setInterval( () => {
-                        listCaptures();
-                    }, 2000 );
+                    timer = setInterval( () => listCaptures(), 2000 );
+                    autoRefresh = true;
+                    generateStartButtons();
                 })
                 .catch( () => {
                     // window.location.reload();
@@ -147,6 +149,20 @@
                 console.log( error );
             } );
         }
+        function refreshClick() {
+            var checkbox = document.getElementById('refreshCheckbox');
+            var refreshButton = document.getElementById('refreshButton');
+
+            if (checkbox.checked == true) {
+                timer = setInterval( () => listCaptures(), 2000 );
+                autoRefresh = true;
+                refreshButton.hidden = true;
+            } else {
+                clearInterval(timer);
+                autoRefresh = false;
+                refreshButton.hidden = false;
+            }
+        }
         function updateAllUsersButton() {
             axios({
                 method: 'get',
@@ -203,6 +219,7 @@
         })
         .then( response => {
             console.log("Start", response.config.method, response.config.url, response.data);
+            if( autoRefresh == false ) listCaptures();
         })
         .catch( error => console.log( error ) );
     }
@@ -216,6 +233,7 @@
         })
         .then( response => {
             console.log('Stop', response.config.method, response.config.url);
+            if( autoRefresh == false ) listCaptures();
         })
         .catch( error => console.log(error) )
     }
@@ -250,20 +268,35 @@
         })
         .then( response => {
             console.log('Delete', response.config.method, response.config.url);
-            listCaptures();
+            if( autoRefresh == false ) listCaptures();
         })
         .catch( error => console.log(error) )
     }
     </script>
 </head>
 <body>
-    <button onclick="startCapture('all')">Start Generic Capture</button>
-    <button onclick="startCapture('goose')">Start Goose Capture</button>
-    <button onclick="startCapture('gse')">Start GSE Capture</button>
-    <button onclick="startCapture('sv')">Start SV Capture</button>
-    <button id="allUsersButton" hidden="true" onclick="toggleAllUsers()">Toggle All Users</button>
-    <button onclick="logout()">Logout</button>
-    <div id="username" style="padding: 1em"></div>
+    <span>
+        <span style="padding: 1em">
+            <button onclick="startCapture('all')">Start Generic Capture</button>
+            <button onclick="startCapture('goose')">Start Goose Capture</button>
+            <button onclick="startCapture('gse')">Start GSE Capture</button>
+            <button onclick="startCapture('sv')">Start SV Capture</button>
+        </span>
+        <span style="padding: 1em">
+            <button id="allUsersButton" hidden="true" onclick="toggleAllUsers()">Toggle All Users</button>
+            <button onclick="logout()">Logout</button>
+        </span>
+        <span>
+            <label for="refreshCheckbox">Auto-refresh</label>
+            <input type="checkbox" id="refreshCheckbox" onclick="refreshClick()" checked>
+        </span>
+        <span style="padding: 1em">
+            <span id="username" style="padding: 1em"></span>
+        </span>
+    </span>
     <table id="mytable" style="padding: 1em"></table>
+    <div style="padding: 1em">
+        <button id="refreshButton" hidden="true" onclick="listCaptures()">Refresh</button>
+    </div>
 </body>
 </html>
