@@ -257,6 +257,14 @@ public class PacketCaptureResource
         }
         
         DumpcapProcess proc = dumpcapDbService.find( UUID.fromString( id ), getPrincipalName() );
+        
+        if( proc == null )
+        {
+            // Deleted already... This was probably caused by a double click.
+            
+            return Response.ok().build();
+        }
+        
         File file = new File( proc.getPathName() );
         
         if( file.exists() ) 
