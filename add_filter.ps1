@@ -1,3 +1,6 @@
+# This script can be used to add or remove capture filters from the program. It assumes you have both the HttPie program, and the jq program
+# installed on your computer. The jq for Windows program can be installed using the Chocolatey Package Manager. HttPie is available from the
+# Python pip package manager: python -m pip install --upgrade pip setuptools, then python -m pip install --upgrade httpie.
 
 # Read environment vqriables from the ".env" file - if it exists.
 
@@ -62,24 +65,27 @@ Write-Host "Adding capture filters for Generic, Goose, GSE, and SV"
 # 
 # One other thing to keep in mind: All of these scripts use what's called a "Direct Access Grant". If you turn that off in Keycloak for the backend-service client,
 # it will block these scripts from running. But the users will still be able to use the frontend-client web page, because that's considered the "Standard Flow".
+# 
+# The --verify=$ENV:CA_CERT can be removed if you're not connecting to the API server over https. You might not need it anyway, if you're using a certificate that
+# was signed by a public Certificate Authority.
 
-http -v POST :8080/api/filter "Authorization:Bearer $access_token" label="Start Generic Capture" urlSuffix=all captureFilter:=null
-http -v POST :8080/api/filter "Authorization:Bearer $access_token" label="Start Goose Capture" urlSuffix=goose captureFilter="ether proto 0x88B8"
-http -v POST :8080/api/filter "Authorization:Bearer $access_token" label="Start GSE Capture" urlSuffix=gse captureFilter="ether proto 0x88B9"
-http -v POST :8080/api/filter "Authorization:Bearer $access_token" label="Start SV Capture" urlSuffix=sv captureFilter="ether proto 0x88BA"
-http -v POST :8080/api/filter "Authorization:Bearer $access_token" label="Start PTP Capture" urlSuffix=ptp captureFilter="ether proto 0x88F7"
+http -v --verify=$ENV:CA_CERT POST $ENV:API_SERVER/api/filter "Authorization:Bearer $access_token" label="Start Generic Capture" urlSuffix=all captureFilter:=null
+http -v --verify=$ENV:CA_CERT POST $ENV:API_SERVER/api/filter "Authorization:Bearer $access_token" label="Start Goose Capture" urlSuffix=goose captureFilter="ether proto 0x88B8"
+http -v --verify=$ENV:CA_CERT POST $ENV:API_SERVER/api/filter "Authorization:Bearer $access_token" label="Start GSE Capture" urlSuffix=gse captureFilter="ether proto 0x88B9"
+http -v --verify=$ENV:CA_CERT POST $ENV:API_SERVER/api/filter "Authorization:Bearer $access_token" label="Start SV Capture" urlSuffix=sv captureFilter="ether proto 0x88BA"
+http -v --verify=$ENV:CA_CERT POST $ENV:API_SERVER/api/filter "Authorization:Bearer $access_token" label="Start PTP Capture" urlSuffix=ptp captureFilter="ether proto 0x88F7"
 
 # Write-Host "Listing capture filters"
 
-# http -b GET :8080/api/filter "Authorization:Bearer $access_token"
+# http -b --verify=$ENV:CA_CERT GET $ENV:API_SERVER/api/filter "Authorization:Bearer $access_token"
 
 # Write-Host "Deleting capture filters"
 
-# http DELETE :8080/api/filter/all "Authorization:Bearer $access_token"
-# http DELETE :8080/api/filter/goose "Authorization:Bearer $access_token"
-# http DELETE :8080/api/filter/gse "Authorization:Bearer $access_token"
-# http DELETE :8080/api/filter/sv "Authorization:Bearer $access_token"
+# http --verify=$ENV:CA_CERT DELETE $ENV:API_SERVER/api/filter/all "Authorization:Bearer $access_token"
+# http --verify=$ENV:CA_CERT DELETE $ENV:API_SERVER/api/filter/goose "Authorization:Bearer $access_token"
+# http --verify=$ENV:CA_CERT DELETE $ENV:API_SERVER/api/filter/gse "Authorization:Bearer $access_token"
+# http --verify=$ENV:CA_CERT DELETE $ENV:API_SERVER/api/filter/sv "Authorization:Bearer $access_token"
 
 Write-Host "Listing capture filters again"
 
-http -b GET :8080/api/filter "Authorization:Bearer $access_token"
+http --verify=$ENV:CA_CERT -b GET $ENV:API_SERVER/api/filter "Authorization:Bearer $access_token"

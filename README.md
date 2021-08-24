@@ -28,6 +28,8 @@ If you want to learn more about Quarkus, please visit its website: https://quark
 - It's unlikely that you'll be able to run it inside a `Kubernetes` cluster, because `Kubernetes` uses separate internal Pod networks. Most traffic is redirected into Kubernetes clusters via LoadBalancer and Ingress resources.
 - You may want to write a separate standalone client web application to furthur separate the client from the back-end service in terms of security.
 - There may also be other reasons why you'd want a different client. I know that there are quite a few `Node.JS` based frameworks out there that are very popular.
+- There's now an `add_filter.ps1` script that can be used after installation to add/remove capture filters. The add_filters.ps1 script, like all the other PowerShell scripts in the directory reads the `.env` file for environment
+  settings.
 
 ## Understanding Project Settings
 
@@ -65,6 +67,13 @@ QUARKUS_OIDC_CREDENTIALS_SECRET=your-oidc-credentials-secret
 QUARKUS_OIDC_TLS_VERIFICATION=required
 TEST_USER_NAME=alice
 TEST_USER_PASSWORD=alice
+# This is the root CA certificate of your enterprise CA. If you're using a certificate
+# signed by a public CA, you can ignore this. Alternatively, you can run the application
+# on a non-SSL port to get the filters added. The CA cert is only needed here for the
+# HttPie (http) program, which is a Python program, and doesn't use the Windows certificate
+# store.
+CA_CERT=root.crt
+API_SERVER=https://your.installed.application
 ```
 
 The `QUARKUS_OIDC_CREDENTIALS_SECRET` must match the `Keycloak -> Quarkus Realm -> Clients -> Backend-service -> Credentials -> Secret`. For security you should regenerate the secret. The frontend-client does not have a credentials secret because it's configured with "Access Type" set to "public". This is necessary because JavaScript based clients have no secure way to store the credentials. It's necessary to take additional security precautions for this reason. In particular, you should make sure the `Valid Redirect URIs` field is as specific as possible (so don't use `*` by itself for instance).
