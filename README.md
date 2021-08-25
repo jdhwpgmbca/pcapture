@@ -142,81 +142,21 @@ regenerated.
 
 # Windows Service Deployment
 
-Create an empty folder called win64service, or something like that, and copy these files into it:
+- Run `.\mvnw clean compile package`
 
+In a PowerShell window:
+
+```shell
+cd target\win64svc
+.\pre-install.ps1
+.\install-and-run.ps1
 ```
-jre\  (A renamed OpenJDK 11 installation)
-dumpcap-ws.exe (Renamed from WinSW-x64.exe)
-dumpcap-ws.xml
-dumpcap-ws-1.0.0-runner.jar (from target\ folder)
-startCaptureScript.ps1  (from src/main/resources. You'll likely need to update the network interface name in this file)
-ssl-cert-and-key.pfx (This should contain the SSL certificate and key file, stored in PKCS12 format)
-```
 
-Update: Much of this is done for you now by `./mvnw clean compile package`. The `target/win64svc` folder holds a copy of `dumpcap-ws.exe`,
-an `.msi` for the `OpenJDK 11`, and a nearly functional `dumpcap-ws.xml` configuration file. You'll need to obtain a server
-certificate and key and get them into PKCS12 (`.p12` or `.pfx`) format. You'll also need to copy the OpenJDK folder installed
-from the `.msi`. And finally, you'll need the generated `dumpcap-ws-{version}-runner.jar` file copied from the target folder.
+After the pre-install, the installation folder is essentially complete. You can then copy the win64svc folder to another PC before you install and run the service with the `install-and-run.ps1` script.
 
-I'm using Windows Service wrapper program called: "Windows Service Wrapper". Who would have guessed? It's available at `https://github.com/winsw/winsw`. I'm using `WinSW v2.11.0`, released on March 17, 2021. It's very simple to use. There's a config file generated under `src/target/classes/win64svc` that has most of the fields filled in based on your `settings.xml` and `pom.xml` properties. You'll need to change the `${my.cert.with.private.key}` value to a valid pfx or .p12 file containing your server key and SSL certificate. You can then download the `WinSW-x64.exe` file from `https://github.com/winsw/winsw/releases` and rename it to the same name as your configuration file. Once all the properties are filled out in your configuration file, you can just run (as in our case) `dumpcap-ws.exe install`, followed by `dumpcap.exe start` to start the service. If you want to stop and uninstall the service, just run the same `dumpcap-ws.exe stop`, and `dumpcap-ws.exe uninstall`.
+This will get a service running on your local PC, running on `http://localhost:8080`. For production deployment, you'll need to uncomment the lines at the bottom of the `dumpcap-ws.xml` file, and provide an SSL certificate and key saved in PKCS12 format (`.pfx` or `.p12`) called `server-cert-and-key.pfx`.
 
-Here's a copy of our configuration file (with a few things changed for security):
-
-```
-<!--
-  MIT License
-
-  Copyright (c) 2008-2020 Kohsuke Kawaguchi, Sun Microsystems, Inc., CloudBees,
-  Inc., Oleg Nenashev and other contributors
-
-  Permission is hereby granted, free of charge, to any person obtaining a copy
-  of this software and associated documentation files (the "Software"), to deal
-  in the Software without restriction, including without limitation the rights
-  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-  copies of the Software, and to permit persons to whom the Software is
-  furnished to do so, subject to the following conditions:
-
-  The above copyright notice and this permission notice shall be included in all
-  copies or substantial portions of the Software.
-
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-  SOFTWARE.
--->
-
-<service>
-  
-  <!-- ID of the service. It should be unique across the Windows system-->
-  <id>PCapSvc</id>
-  <!-- Display name of the service -->
-  <name>Packet Capture Service</name>
-  <!-- Service description -->
-  <description>Run dumpcap or tcpdump program from a Windows service.</description>
-  
-  <!-- This next line must match the layout of the OpenJDK folder that you've renamed to jre. -->
-  <!-- Make sure the wrapper can find Java! -->
-  <executable>%BASE%\jre\bin\java.exe</executable>
-  <arguments>-jar dumpcap-ws-1.0.0-runner.jar</arguments>
-  <env name="QUARKUS_OIDC_AUTH_SERVER_URL" value="https://your.keycloak.server/auth/realms/your_keycloak_realm" />
-  <env name="QUARKUS_OIDC_CLIENT_ID" value="backend-service"/>
-  <env name="QUARKUS_OIDC_CREDENTIALS_SECRET" value="your_keycloak_secret"/>
-  <env name="QUARKUS_OIDC_TLS_VERIFICATION" value="required"/>
-  <env name="START_CAPTURE_SCRIPT" value="./startCaptureScript.ps1"/>
-  <env name="QUARKUS_DATASOURCE_DB_KIND" value="h2"/>
-  <env name="QUARKUS_DATASOURCE_JDBC_URL" value="jdbc:h2:file:./h2db"/>
-  <env name="QUARKUS_HTTP_PORT" value="80"/>
-  <env name="QUARKUS_HTTP_TEST_PORT" value="0"/>
-  <env name="QUARKUS_HTTP_SSL_PORT" value="443"/>
-  <env name="QUARKUS_HTTP_INSECURE_REQUESTS" value="redirect"/>
-  <env name="QUARKUS_HTTP_SSL_CERTIFICATE_KEY_STORE_FILE" value="./your.certificate.and.key.pfx"/>
-  <env name="QUARKUS_HTTP_SSL_CERTIFICATE_KEY_STORE_PASSWORD" value="changeme"/>
-
-</service>
-```
+There's also a file called `stop-and-uninstall.ps1` which can be used to stop uninstall the service. You'll need to at least stop the service if you want to update the jar file used by the running service.
 
 ### Testing
 

@@ -31,7 +31,7 @@
     
     <!-- These next properties are only used when Quarkus is used in prod mode. -->
     
-    <prod.keystore-file>./server-cert-and-key.p12</prod.keystore-file>
+    <prod.keystore-file>./server-cert-and-key.pfx</prod.keystore-file>
     <prod.keystore-password>changeme</prod.keystore-password>
     <prod.ssl-port>443</prod.ssl-port>
     <prod.http.port>80</prod.http.port>
@@ -135,6 +135,7 @@
           <targetPath>../win64svc</targetPath>
           <includes>
               <include>**/*.xml</include>
+              <include>**/*.ps1</include>
           </includes>
       </resource>
     </resources>
@@ -191,10 +192,10 @@
                       <goal>wget</goal>
                   </goals>
                   <configuration>
-                    <uri>https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.12%2B7/OpenJDK11U-jdk_x64_windows_hotspot_11.0.12_7.msi</uri>
-                    <unpack>false</unpack>
+                    <url>https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.11%2B9/OpenJDK11U-jre_x64_windows_hotspot_11.0.11_9.zip</url>
+                    <unpack>true</unpack>
                     <outputDirectory>${project.build.directory}/win64svc</outputDirectory>
-                    <sha256>80546d8a36ad0cdf69305f72f42465093b9d0388f45819b05cc640ecd1310b32</sha256>
+                    <sha256>a7377fb0807fa619de49eec02ad7e2110c257649341f5ccffbaafa43cc8cbcc8</sha256>
                   </configuration>
               </execution>
           </executions>

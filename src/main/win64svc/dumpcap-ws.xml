@@ -62,7 +62,7 @@
        We get our OpenJDK's from https://adoptopenjdk.net
   -->
 
-  <executable>%BASE%\jre\bin\java.exe</executable>
+  <executable>%BASE%\jdk-11.0.11+9-jre\bin\java.exe</executable>
   <arguments>-jar dumpcap-ws-1.0.0-runner.jar</arguments>
   <env name="QUARKUS_OIDC_AUTH_SERVER_URL" value="${auth.server-url}/auth/realms/${auth.realm}" />
   <env name="QUARKUS_OIDC_CLIENT_ID" value="${auth.backend.client-id}"/>
@@ -71,10 +71,15 @@
   <env name="START_CAPTURE_SCRIPT" value="./startCaptureScript.ps1"/>
   <env name="QUARKUS_DATASOURCE_DB_KIND" value="h2"/>
   <env name="QUARKUS_DATASOURCE_JDBC_URL" value="jdbc:h2:file:./h2db"/>
+
+  <!-- Uncomment these lines once you have your SSL certificate and key stored in the .p12 or .pfx file below. -->
+
+  <!--
   <env name="QUARKUS_HTTP_PORT" value="${prod.http.port}"/>
   <env name="QUARKUS_HTTP_SSL_PORT" value="${prod.ssl-port}"/>
   <env name="QUARKUS_HTTP_INSECURE_REQUESTS" value="${prod.insecure-requests}"/>
   <env name="QUARKUS_HTTP_SSL_CERTIFICATE_KEY_STORE_FILE" value="${prod.keystore-file}"/>
   <env name="QUARKUS_HTTP_SSL_CERTIFICATE_KEY_STORE_PASSWORD" value="${prod.keystore-password}"/>
+  -->
 
 </service>
