@@ -30,11 +30,11 @@ public class PacketFilterResource
     }
     
     @DELETE
-    @Path("/{label}")
+    @Path("/{url_suffix}")
     @RolesAllowed("admin")
-    public void deleteFilter( @PathParam("label") String label )
+    public void deleteFilter( @PathParam("url_suffix") String url_suffix )
     {
-        captureTypeService.deleteCaptureType( label );
+        captureTypeService.deleteCaptureType( url_suffix );
     }
     
     @GET

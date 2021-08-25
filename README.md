@@ -69,7 +69,9 @@ AUTH_REALM=your_keycloak_realm
 QUARKUS_OIDC_AUTH_SERVER_URL=https://your_keycloak_server/auth/realms/your_keycloak_realm
 QUARKUS_OIDC_CREDENTIALS_SECRET=your_keycloak_backend_service_credentials
 QUARKUS_KEYCLOAK_DEVSERVICES_REALM_NAME=your_keycloak_realm
+
 # Used for scripts
+
 ADMIN_USER_NAME=alice
 ADMIN_USER_PASSWORD=downtherabbithole
 API_SERVER=http://your.api.server:port
