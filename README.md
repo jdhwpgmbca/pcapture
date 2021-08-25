@@ -153,6 +153,11 @@ startCaptureScript.ps1  (from src/main/resources. You'll likely need to update t
 ssl-cert-and-key.pfx (This should contain the SSL certificate and key file, stored in PKCS12 format)
 ```
 
+Update: Much of this is done for you now by `./mvnw clean compile package`. The `target/win64svc` folder holds a copy of `dumpcap-ws.exe`,
+an `.msi` for the `OpenJDK 11`, and a nearly functional `dumpcap-ws.xml` configuration file. You'll need to obtain a server
+certificate and key and get them into PKCS12 (`.p12` or `.pfx`) format. You'll also need to copy the OpenJDK folder installed
+from the `.msi`. And finally, you'll need the generated `dumpcap-ws-{version}-runner.jar` file copied from the target folder.
+
 I'm using Windows Service wrapper program called: "Windows Service Wrapper". Who would have guessed? It's available at `https://github.com/winsw/winsw`. I'm using `WinSW v2.11.0`, released on March 17, 2021. It's very simple to use. There's a config file generated under `src/target/classes/win64svc` that has most of the fields filled in based on your `settings.xml` and `pom.xml` properties. You'll need to change the `${my.cert.with.private.key}` value to a valid pfx or .p12 file containing your server key and SSL certificate. You can then download the `WinSW-x64.exe` file from `https://github.com/winsw/winsw/releases` and rename it to the same name as your configuration file. Once all the properties are filled out in your configuration file, you can just run (as in our case) `dumpcap-ws.exe install`, followed by `dumpcap.exe start` to start the service. If you want to stop and uninstall the service, just run the same `dumpcap-ws.exe stop`, and `dumpcap-ws.exe uninstall`.
 
 Here's a copy of our configuration file (with a few things changed for security):
