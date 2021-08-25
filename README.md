@@ -59,21 +59,21 @@ Sometimes a database schema upgrade may be necessary, and I haven't integrated f
 (This file configures the back-end web service, it doesn't affect the web client.)
 
 ```shell script
-# These are Quarkus environment overrides, they have nothing to do with Apache Maven.
-# They are used at runtime to override properties in application.properties.
-QUARKUS_OIDC_AUTH_SERVER_URL=https://your.keycloak.server/auth/realms/quarkus
-QUARKUS_OIDC_CLIENT_ID=backend-service
-QUARKUS_OIDC_CREDENTIALS_SECRET=your-oidc-credentials-secret
-QUARKUS_OIDC_TLS_VERIFICATION=required
-TEST_USER_NAME=alice
-TEST_USER_PASSWORD=alice
-# This is the root CA certificate of your enterprise CA. If you're using a certificate
-# signed by a public CA, you can ignore this. Alternatively, you can run the application
-# on a non-SSL port to get the filters added. The CA cert is only needed here for the
-# HttPie (http) program, which is a Python program, and doesn't use the Windows certificate
-# store.
-CA_CERT=root.crt
-API_SERVER=https://your.installed.application
+# These directly override properties in application.properties. This gets done after
+# maven has performed it's subsitutions, so even though AUTH_SERVER_URL and QUARKUS_OIDC_AUTH_SERVER_URL
+# may seem redundant, they are in fact, separate properties. One is used for the @Inject annotations in
+# PcapApplication, and the other is used to override Quarkus' OIDC behaviour.
+
+AUTH_SERVER_URL=https://your.keycloak.server
+AUTH_REALM=your_keycloak_realm
+QUARKUS_OIDC_AUTH_SERVER_URL=https://your_keycloak_server/auth/realms/your_keycloak_realm
+QUARKUS_OIDC_CREDENTIALS_SECRET=your_keycloak_backend_service_credentials
+QUARKUS_KEYCLOAK_DEVSERVICES_REALM_NAME=your_keycloak_realm
+# Used for scripts
+ADMIN_USER_NAME=alice
+ADMIN_USER_PASSWORD=downtherabbithole
+API_SERVER=http://your.api.server:port
+CA_CERT=root-ca-cert.crt
 ```
 
 The `QUARKUS_OIDC_CREDENTIALS_SECRET` must match the `Keycloak -> Quarkus Realm -> Clients -> Backend-service -> Credentials -> Secret`. For security you should regenerate the secret. The frontend-client does not have a credentials secret because it's configured with "Access Type" set to "public". This is necessary because JavaScript based clients have no secure way to store the credentials. It's necessary to take additional security precautions for this reason. In particular, you should make sure the `Valid Redirect URIs` field is as specific as possible (so don't use `*` by itself for instance).
@@ -88,21 +88,16 @@ The `QUARKUS_OIDC_CREDENTIALS_SECRET` must match the `Keycloak -> Quarkus Realm 
 >
 
     <profiles>
+        
         <profile>
             <id>keycloak</id>
             <properties>
                 <auth.server-url>https://your.keycloak.server</auth.server-url>
-                <auth.realm>your-keycloak-realm</auth.realm>
-                
-                <!--<auth.frontend.ssl-required>external</auth.frontend.ssl-required>-->
-                <!--<auth.frontend.client-id>frontend-client</auth.frontend.client-id>-->
-                <auth.frontend.client-confidential-port>443</auth.frontend.client-confidential-port>
-                
-                <!--<auth.backend.client-id>backend-service</auth.backend.client-id>-->
-                <auth.backend.secret>your-keycloak-backend-secret</auth.backend.secret>
-                <!--<auth.backend.tls-verification>required</auth.backend.tls-verification>-->
+                <auth.realm>your_keycloak_realm</auth.realm>
+                <auth.backend.secret>your_keycloak_backend-service_credentials</auth.backend.secret>
             </properties>
         </profile>
+        
     </profiles>
 
     <activeProfiles>

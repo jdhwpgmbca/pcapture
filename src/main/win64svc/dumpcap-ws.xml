@@ -24,7 +24,8 @@
 -->
 
 <!--
- This is an example of a minimal Windows Service Wrapper configuration, which includes only mandatory options.
+ This is an example of a minimal Windows Service Wrapper configuration, which includes only mandatory options,
+ *AND* a few environment variables that I've added for the dumpcap-ws service.
  
  This configuration file should be placed near the WinSW executable, the name should be the same.
  E.g. for myapp.exe the configuration file name should be myapp.xml
@@ -32,16 +33,35 @@
  You can find more information about the configuration options here: https://github.com/kohsuke/winsw/blob/master/doc/xmlConfigFile.md
  Full example: https://github.com/kohsuke/winsw/blob/master/examples/sample-allOptions.xml
 -->
+
 <service>
   
-  <!-- ID of the service. It should be unique across the Windows system-->
+  <!-- ID of the service. It should be unique across the Windows system. It's okay to 
+       rename this if there's a conflict with an existing service name.
+  -->
+
   <id>PCapSvc</id>
+
   <!-- Display name of the service -->
+
   <name>Packet Capture Service</name>
+
   <!-- Service description -->
+
   <description>Run dumpcap or tcpdump program from a Windows service.</description>
   
-  <!-- This all works fine! -jdh -->
+  <!-- You will need to copy an OpenJDK 11 folder to this folder, and rename it to jre,
+       as well as copying the ${project.build.finalName}-runner.jar.
+       You should also copy an PKCS12 formatted file containing your SSL certificate
+       and key into this directory and rename it to the name shown below for
+       QUARKUS_HTTP_SSL_CERTIFICATE_KEY_STORE_FILE. You may also need to change the
+       QUARKUS_HTTP_SSL_CERTIFICATE_KEY_STORE_PASSWORD below to match the export password
+       used by your Network Administrator when the key was exported. It's important that
+       this file contain both the key and the certificate.
+
+       We get our OpenJDK's from https://adoptopenjdk.net
+  -->
+
   <executable>%BASE%\jre\bin\java.exe</executable>
   <arguments>-jar dumpcap-ws-1.0.0-runner.jar</arguments>
   <env name="QUARKUS_OIDC_AUTH_SERVER_URL" value="${auth.server-url}/auth/realms/${auth.realm}" />
@@ -51,10 +71,10 @@
   <env name="START_CAPTURE_SCRIPT" value="./startCaptureScript.ps1"/>
   <env name="QUARKUS_DATASOURCE_DB_KIND" value="h2"/>
   <env name="QUARKUS_DATASOURCE_JDBC_URL" value="jdbc:h2:file:./h2db"/>
-  <env name="QUARKUS_HTTP_PORT" value="0"/>
-  <env name="QUARKUS_HTTP_TEST_PORT" value="0"/>
-  <env name="QUARKUS_HTTP_SSL_PORT" value="443"/>
-  <env name="QUARKUS_HTTP_SSL_CERTIFICATE_KEY_STORE_FILE" value="./${my.cert.with.private.key}.pfx"/>
-  <env name="QUARKUS_HTTP_SSL_CERTIFICATE_KEY_STORE_PASSWORD" value="changeme"/>
+  <env name="QUARKUS_HTTP_PORT" value="${prod.http.port}"/>
+  <env name="QUARKUS_HTTP_SSL_PORT" value="${prod.ssl-port}"/>
+  <env name="QUARKUS_HTTP_INSECURE_REQUESTS" value="${prod.insecure-requests}"/>
+  <env name="QUARKUS_HTTP_SSL_CERTIFICATE_KEY_STORE_FILE" value="${prod.keystore-file}"/>
+  <env name="QUARKUS_HTTP_SSL_CERTIFICATE_KEY_STORE_PASSWORD" value="${prod.keystore-password}"/>
 
 </service>

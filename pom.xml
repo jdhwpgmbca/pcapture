@@ -6,6 +6,7 @@
   <artifactId>dumpcap-ws</artifactId>
   <version>1.0.0</version>
   <properties>
+      
     <compiler-plugin.version>3.8.1</compiler-plugin.version>
     <maven.compiler.parameters>true</maven.compiler.parameters>
     <maven.compiler.source>11</maven.compiler.source>
@@ -22,20 +23,25 @@
     
     <auth.frontend.ssl-required>external</auth.frontend.ssl-required>
     <auth.frontend.client-id>frontend-client</auth.frontend.client-id>
-    <auth.frontend.client-confidential-port>8443</auth.frontend.client-confidential-port>
+    <auth.frontend.client-confidential-port>443</auth.frontend.client-confidential-port>
     
     <auth.backend.client-id>backend-service</auth.backend.client-id>
     <auth.backend.secret>secret</auth.backend.secret>
     <auth.backend.tls-verification>required</auth.backend.tls-verification>
     
-    <tls.keystore-file></tls.keystore-file>
-    <tls.keystore-password></tls.keystore-password>
-    <tls.ssl-port></tls.ssl-port>
+    <!-- These next properties are only used when Quarkus is used in prod mode. -->
     
-    <datasource.jdbc.url>jdbc:h2:file:${project.basedir}/h2db</datasource.jdbc.url>
+    <prod.keystore-file>./server-cert-and-key.p12</prod.keystore-file>
+    <prod.keystore-password>changeme</prod.keystore-password>
+    <prod.ssl-port>443</prod.ssl-port>
+    <prod.http.port>80</prod.http.port>
+    <prod.insecure-requests>redirect</prod.insecure-requests>
+    <prod.ssl-native>true</prod.ssl-native>
+    
+    <datasource.jdbc.url>jdbc:h2:file:./h2db</datasource.jdbc.url>
     <datasource.jdbc.test.url>jdbc:h2:mem:test</datasource.jdbc.test.url>
     <start-capture-script>${project.basedir}/src/main/resources/startCaptureScript.ps1</start-capture-script>
-    <git.hash></git.hash> <!-- This would normally be overridden by your Continuous Integration System. We use GitLab-CI. -->
+    
   </properties>
   <dependencyManagement>
     <dependencies>
@@ -124,17 +130,9 @@
         </includes>
       </resource>
       <resource>
-          <filtering>false</filtering>
-          <directory>src/main/win64svc</directory>
-          <targetPath>win64svc</targetPath>
-          <excludes>
-              <exclude>*.xml</exclude>
-          </excludes>
-      </resource>
-      <resource>
           <filtering>true</filtering>
           <directory>src/main/win64svc</directory>
-          <targetPath>win64svc</targetPath>
+          <targetPath>../win64svc</targetPath>
           <includes>
               <include>**/*.xml</include>
           </includes>
@@ -167,6 +165,40 @@
       </testResource>
     </testResources>
     <plugins>
+      <plugin>
+          <groupId>com.googlecode.maven-download-plugin</groupId>
+          <artifactId>download-maven-plugin</artifactId>
+          <version>1.6.6</version>
+          <executions>
+              <execution>
+                  <id>download_wrapper</id>
+                  <phase>process-resources</phase>
+                  <goals>
+                      <goal>wget</goal>
+                  </goals>
+                  <configuration>
+                    <uri>https://github.com/winsw/winsw/releases/download/v2.11.0/WinSW.NET4.exe</uri>
+                    <unpack>false</unpack>
+                    <outputDirectory>${project.build.directory}/win64svc</outputDirectory>
+                    <outputFileName>dumpcap-ws.exe</outputFileName>
+                    <sha256>abe54e1dba743fdf0403e33c1f9e6807800a2f9acd3d3101002cf59f3f2dea62</sha256>
+                  </configuration>
+              </execution>
+              <execution>
+                  <id>download-openjdk</id>
+                  <phase>process-resources</phase>
+                  <goals>
+                      <goal>wget</goal>
+                  </goals>
+                  <configuration>
+                    <uri>https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.12%2B7/OpenJDK11U-jdk_x64_windows_hotspot_11.0.12_7.msi</uri>
+                    <unpack>false</unpack>
+                    <outputDirectory>${project.build.directory}/win64svc</outputDirectory>
+                    <sha256>80546d8a36ad0cdf69305f72f42465093b9d0388f45819b05cc640ecd1310b32</sha256>
+                  </configuration>
+              </execution>
+          </executions>
+      </plugin>
       <plugin>
         <groupId>${quarkus.platform.group-id}</groupId>
         <artifactId>quarkus-maven-plugin</artifactId>
