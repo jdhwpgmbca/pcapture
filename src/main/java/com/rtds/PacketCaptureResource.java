@@ -72,12 +72,6 @@ public class PacketCaptureResource
     public Response startTypedCapture( @PathParam("type") String type ) throws IOException, GeneralSecurityException
     {
         String filter = captureTypeService.findFilter( type );
-        
-        return startCapture( filter, type );
-    }
-    
-    public Response startCapture( String filter, String type ) throws IOException, GeneralSecurityException
-    {
         java.nio.file.Path script_path = java.nio.file.Path.of( startCaptureScript );
         
         logger.info(  "startCaptureScript path {}", startCaptureScript );
