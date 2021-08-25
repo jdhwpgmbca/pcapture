@@ -4,7 +4,7 @@ $dbid=$args[0]
 
 if (Test-Path .env) {
     foreach($line in Get-Content .\.env) {
-        if(!$line.startsWith("#")) {
+        if($line -and !$line.startsWith("#")) {
             $vars=$line.Split("=")
             $location=Get-Location
             Set-Location Env:
@@ -18,7 +18,7 @@ if (Test-Path .env) {
 
 if($ENV:QUARKUS_OIDC_AUTH_SERVER_URL -and $ENV:QUARKUS_OIDC_CREDENTIALS_SECRET) {
 
-    $access_token=(http -a backend-service:$ENV:QUARKUS_OIDC_CREDENTIALS_SECRET --form POST $ENV:QUARKUS_OIDC_AUTH_SERVER_URL/protocol/openid-connect/token username=alice password='alice' grant_type=password | jq --raw-output '.access_token')
+    $access_token=(http -a backend-service:$ENV:QUARKUS_OIDC_CREDENTIALS_SECRET --form POST $ENV:QUARKUS_OIDC_AUTH_SERVER_URL/protocol/openid-connect/token username="$ENV:ADMIN_USER_NAME" password="$ENV:ADMIN_USER_PASSWORD" grant_type=password | jq --raw-output '.access_token')
 
 } else {
 
@@ -43,10 +43,14 @@ if($ENV:QUARKUS_OIDC_AUTH_SERVER_URL -and $ENV:QUARKUS_OIDC_CREDENTIALS_SECRET) 
 
     # Get the access token using the default credentials.
 
-    $access_token=(http -a backend-service:secret --form POST :$port/auth/realms/quarkus/protocol/openid-connect/token username='alice' password='alice' grant_type=password | jq --raw-output '.access_token')
+    $access_token=(http -a backend-service:secret --form POST :$port/auth/realms/quarkus/protocol/openid-connect/token username="$ENV:ADMIN_USER_NAME" password="$ENV:ADMIN_USER_PASSWORD" grant_type=password | jq --raw-output '.access_token')
 
+}
+
+if($ENV:CA_CERT -and (Test-Path $ENV:CA_CERT)) {
+    $VERIFY="--verify=$ENV:CA_CERT"
 }
 
 Write-Host "Deleting capture..."
 
-http -q DELETE :8080/api/capture/$dbid "Authorization:Bearer $access_token"
+http -q $VERIFY DELETE $ENV:API_SERVER/api/capture/$dbid "Authorization:Bearer $access_token"

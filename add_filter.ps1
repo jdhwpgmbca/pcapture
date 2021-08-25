@@ -6,7 +6,7 @@
 
 if (Test-Path .env) {
     foreach($line in Get-Content .\.env) {
-        if(!$line.startsWith("#")) {
+        if($line -and !$line.startsWith("#")) {
             $vars=$line.Split("=")
             $location=Get-Location
             Set-Location Env:
@@ -20,7 +20,7 @@ if (Test-Path .env) {
 
 if($ENV:QUARKUS_OIDC_AUTH_SERVER_URL -and $ENV:QUARKUS_OIDC_CREDENTIALS_SECRET) {
 
-    $access_token=(http -a backend-service:"$ENV:QUARKUS_OIDC_CREDENTIALS_SECRET" --form POST "$ENV:QUARKUS_OIDC_AUTH_SERVER_URL/protocol/openid-connect/token" username="$ENV:TEST_USER_NAME" password="$ENV:TEST_USER_PASSWORD" grant_type=password | jq --raw-output '.access_token')
+    $access_token=(http -a backend-service:"$ENV:QUARKUS_OIDC_CREDENTIALS_SECRET" --form POST "$ENV:QUARKUS_OIDC_AUTH_SERVER_URL/protocol/openid-connect/token" username="$ENV:ADMIN_USER_NAME" password="$ENV:ADMIN_USER_PASSWORD" grant_type=password | jq --raw-output '.access_token')
 
 } else {
 
@@ -47,13 +47,17 @@ if($ENV:QUARKUS_OIDC_AUTH_SERVER_URL -and $ENV:QUARKUS_OIDC_CREDENTIALS_SECRET) 
 
     # Get the access token using the default credentials.
 
-    $access_token=(http -a backend-service:secret --form POST :$port/auth/realms/quarkus/protocol/openid-connect/token username='alice' password='alice' grant_type=password | jq --raw-output '.access_token')
+    $access_token=(http -a backend-service:secret --form POST :$port/auth/realms/quarkus/protocol/openid-connect/token username="$ENV:ADMIN_USER_NAME" password="$ENV:ADMIN_USER_PASSWORD" grant_type=password | jq --raw-output '.access_token')
 
+}
+
+if($ENV:CA_CERT -and (Test-Path $ENV:CA_CERT)) {
+    $VERIFY="--verify=$ENV:CA_CERT"
 }
 
 # Write-Host "Listing capture filters"
 
-# http -b GET :8080/api/filter "Authorization:Bearer $access_token"
+# http -b $VERIFY GET $ENV:API_SERVER/api/filter "Authorization:Bearer $access_token"
 
 Write-Host "Adding capture filters for Generic, Goose, GSE, and SV"
 
@@ -65,27 +69,24 @@ Write-Host "Adding capture filters for Generic, Goose, GSE, and SV"
 # 
 # One other thing to keep in mind: All of these scripts use what's called a "Direct Access Grant". If you turn that off in Keycloak for the backend-service client,
 # it will block these scripts from running. But the users will still be able to use the frontend-client web page, because that's considered the "Standard Flow".
-# 
-# The --verify=$ENV:CA_CERT can be removed if you're not connecting to the API server over https. You might not need it anyway, if you're using a certificate that
-# was signed by a public Certificate Authority.
 
-http -v --verify=$ENV:CA_CERT POST $ENV:API_SERVER/api/filter "Authorization:Bearer $access_token" label="Start Generic Capture" urlSuffix=all captureFilter:=null
-http -v --verify=$ENV:CA_CERT POST $ENV:API_SERVER/api/filter "Authorization:Bearer $access_token" label="Start Goose Capture" urlSuffix=goose captureFilter="ether proto 0x88B8"
-http -v --verify=$ENV:CA_CERT POST $ENV:API_SERVER/api/filter "Authorization:Bearer $access_token" label="Start GSE Capture" urlSuffix=gse captureFilter="ether proto 0x88B9"
-http -v --verify=$ENV:CA_CERT POST $ENV:API_SERVER/api/filter "Authorization:Bearer $access_token" label="Start SV Capture" urlSuffix=sv captureFilter="ether proto 0x88BA"
-http -v --verify=$ENV:CA_CERT POST $ENV:API_SERVER/api/filter "Authorization:Bearer $access_token" label="Start PTP Capture" urlSuffix=ptp captureFilter="ether proto 0x88F7"
+http -v $VERIFY POST $ENV:API_SERVER/api/filter "Authorization:Bearer $access_token" label="Start Generic Capture" urlSuffix=all captureFilter:=null
+http -v $VERIFY POST $ENV:API_SERVER/api/filter "Authorization:Bearer $access_token" label="Start Goose Capture" urlSuffix=goose captureFilter="ether proto 0x88B8"
+http -v $VERIFY POST $ENV:API_SERVER/api/filter "Authorization:Bearer $access_token" label="Start GSE Capture" urlSuffix=gse captureFilter="ether proto 0x88B9"
+http -v $VERIFY POST $ENV:API_SERVER/api/filter "Authorization:Bearer $access_token" label="Start SV Capture" urlSuffix=sv captureFilter="ether proto 0x88BA"
+http -v $VERIFY POST $ENV:API_SERVER/api/filter "Authorization:Bearer $access_token" label="Start PTP Capture" urlSuffix=ptp captureFilter="ether proto 0x88F7"
 
 # Write-Host "Listing capture filters"
 
-# http -b --verify=$ENV:CA_CERT GET $ENV:API_SERVER/api/filter "Authorization:Bearer $access_token"
+# http -b $VERIFY GET $ENV:API_SERVER/api/filter "Authorization:Bearer $access_token"
 
 # Write-Host "Deleting capture filters"
 
-# http --verify=$ENV:CA_CERT DELETE $ENV:API_SERVER/api/filter/all "Authorization:Bearer $access_token"
-# http --verify=$ENV:CA_CERT DELETE $ENV:API_SERVER/api/filter/goose "Authorization:Bearer $access_token"
-# http --verify=$ENV:CA_CERT DELETE $ENV:API_SERVER/api/filter/gse "Authorization:Bearer $access_token"
-# http --verify=$ENV:CA_CERT DELETE $ENV:API_SERVER/api/filter/sv "Authorization:Bearer $access_token"
+# http $VERIFY DELETE $ENV:API_SERVER/api/filter/all "Authorization:Bearer $access_token"
+# http $VERIFY DELETE $ENV:API_SERVER/api/filter/goose "Authorization:Bearer $access_token"
+# http $VERIFY DELETE $ENV:API_SERVER/api/filter/gse "Authorization:Bearer $access_token"
+# http $VERIFY DELETE $ENV:API_SERVER/api/filter/sv "Authorization:Bearer $access_token"
 
 Write-Host "Listing capture filters again"
 
-http --verify=$ENV:CA_CERT -b GET $ENV:API_SERVER/api/filter "Authorization:Bearer $access_token"
+http $VERIFY -b GET $ENV:API_SERVER/api/filter "Authorization:Bearer $access_token"
