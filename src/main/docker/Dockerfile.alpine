@@ -28,13 +28,28 @@ RUN groupadd -g 1001 quarkus \
     && chmod a+x /usr/bin/tcpdump \
     && /usr/sbin/setcap cap_net_raw,cap_net_admin=eip /usr/bin/tcpdump
 
-COPY --chown=quarkus target/quarkus-app/lib/ /deployments/lib/
-COPY --chown=quarkus target/quarkus-app/*.jar /deployments/
-COPY --chown=quarkus target/quarkus-app/app/ /deployments/app/
-COPY --chown=quarkus target/quarkus-app/quarkus/ /deployments/quarkus/
+# This is for the thin-jar type. However, now I'm using a fat-jar. The difference is basically
+# that the fat jar includes all the components of the thin jar, so you don't need to include
+# all these directories. However, this probably increases the size of the Docker image because
+# the fat jar is bigger. If you use a thin jar, you're only adding a little bit onto the image
+# when you update the jar. But if the jar is larger, it's a larger update to the image, and the
+# layer is bigger. So I'll probably go back to using thin jars soon. -jdh
+
+# COPY --chown=quarkus target/quarkus-app/lib/ /deployments/lib/
+# COPY --chown=quarkus target/quarkus-app/*.jar /deployments/
+# COPY --chown=quarkus target/quarkus-app/app/ /deployments/app/
+# COPY --chown=quarkus target/quarkus-app/quarkus/ /deployments/quarkus/
+
 COPY --chown=quarkus src/main/resources/startCaptureScriptTcpdumpForAlpineContainers.sh /deployments/startCaptureScript.sh
+COPY --chown=quarkus target/dumpcap-ws-*-runner.jar /deployments/
 
 ENV START_CAPTURE_SCRIPT=/deployments/startCaptureScript.sh
+ENV AUTH_SERVER_URL=https://keycloak.rtds.com
+ENV AUTH_REALM=pcap
+ENV QUARKUS_OIDC_AUTH_SERVER_URL=https://keycloak.rtds.com/auth/realms/pcap
+ENV QUARKUS_OIDC_CLIENT_ID=backend-service
+ENV QUARKUS_OIDC_CREDENTIALS_SECRET=931a98a3-a80a-4f5a-84fa-e4c6dbfb5028
+ENV QUARKUS_OIDC_TLS_VERIFICATION=required
 
 EXPOSE 8080
 USER 1001
