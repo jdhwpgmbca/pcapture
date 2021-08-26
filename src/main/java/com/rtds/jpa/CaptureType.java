@@ -6,19 +6,27 @@
 package com.rtds.jpa;
 
 import java.io.Serializable;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.Table;
 
 /**
  *
  * @author jdh
  */
 @Entity
+@Table(name="CAPTURE_TYPE")
 public class CaptureType implements Serializable
 {
     @Id
+    @Column(name = "URL_SUFFIX")
     private String urlSuffix;
+    
+    @Column(name = "LABEL")
     private String label;
+    
+    @Column(name = "CAPTURE_FILTER")
     private String captureFilter;
 
     public String getLabel()

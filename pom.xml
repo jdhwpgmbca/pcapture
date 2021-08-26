@@ -38,8 +38,13 @@
     <prod.insecure-requests>redirect</prod.insecure-requests>
     <prod.ssl-native>true</prod.ssl-native>
     
-    <datasource.jdbc.url>jdbc:h2:file:./h2db</datasource.jdbc.url>
-    <datasource.jdbc.test.url>jdbc:h2:mem:test</datasource.jdbc.test.url>
+    <!-- The JDBC URLs: There's also an override in the container profile for the
+        different filesystem layout that's used. -->
+    
+    <dev.jdbc.url>jdbc:h2:file:${basedir}/h2db</dev.jdbc.url>
+    <test.jdbc.url>jdbc:h2:mem:test</test.jdbc.url>
+    <prod.jdbc.url>jdbc:h2:file:./h2db</prod.jdbc.url>
+    
     <start-capture-script>${project.basedir}/src/main/resources/startCaptureScript.ps1</start-capture-script>
     
   </properties>
@@ -249,7 +254,7 @@
     <profile>
       <id>container</id>
       <properties>
-        <datasource.jdbc.url>jdbc:h2:file:/deployments/h2db</datasource.jdbc.url>
+        <prod.jdbc.url>jdbc:h2:file:/deployments/h2db</prod.jdbc.url>
         <start-capture-script>/deployments/startCaptureScript.sh</start-capture-script>
         <!-- Tests are skipped because the startCaptureScript path above isn't accessible outside the container. -->
         <skipTests>true</skipTests>
