@@ -16,26 +16,24 @@ If you want to learn more about Quarkus, please visit its website: https://quark
 - There is now a rudimentary web-based user interface that allows you to start/stop/download/delete captures.
 - There is also now an `admin` mode for people that have been assigned an `admin` role in Keycloak. Admin users can see the captures of other people, stop them, download them and delete them.
 - Non-admin users can only start/stop/delete/download their own captures.
-- I suggest that you create a settings.xml file in your maven `$HOME/.m2` directory to store the `${auth.server.url}` property which should point to your keycloak server. See below for an example.
+- I suggest that you create a settings.xml file in your maven `$HOME/.m2` directory to store the `${auth.server-url}`, `${auth.realm}` and `${auth.backend.secret}` properties that point to your local Keycloak server and allow the backend-service (API) to authenticate to it.
 - I also suggest you create a `.env` file in the top level project directory. This holds environment settings for Quarkus when running from the local folder (does *NOT* affect production jar).
-- The program now works on both Windows and Linux.
-- The program also works inside a Docker container with some caveats. It must be run with the `--privileged` and `--net=host` flags.
+- The program now works on both Windows and Linux, and also from a Docker container hosted on Linux (with some caveats: See --net=host and --privilged)
 - The docker `--net=host` flag is a problem on Windows. At this point in time, it doesn't work at all because there's no bridging between the Docker Linux VM and the Windows physical interface.
   As a workaround, I've removed the `--net=host` and added `-p 8080:8080` flags. However, while you can connect to the interface and capture packets, you're only able to do it on the Docker private
   network - which isn't really useful.
 - I'm now using an `Alpine Linux` based `Docker` image, and use `tcpdump` rather than Wireshark's `dumpcap` program.
 - I can always switch back to Wireshark's `dumpcap` if we need it, but that would greatly increase the Docker image size.
-- It's unlikely that you'll be able to run it inside a `Kubernetes` cluster, because `Kubernetes` uses separate internal Pod networks. Most traffic is redirected into Kubernetes clusters via LoadBalancer and Ingress resources.
-- You may want to write a separate standalone client web application to furthur separate the client from the back-end service in terms of security.
-- There may also be other reasons why you'd want a different client. I know that there are quite a few `Node.JS` based frameworks out there that are very popular.
-- There's now an `add_filter.ps1` script that can be used after installation to add/remove capture filters. The add_filters.ps1 script, like all the other PowerShell scripts in the directory reads the `.env` file for environment
-  settings.
+- It's unlikely that you'll be able to run the Docker image inside a `Kubernetes` cluster, because `Kubernetes` uses separate internal Pod networks. Most traffic is redirected into Kubernetes clusters via LoadBalancer and Ingress resources.
+- You may want to write a separate standalone client web application to furthur separate the `frontend-client` from the `backend-service` in terms of security.
+- There's now an `add_filter.ps1` script that *MUST* be used after installation to add/remove capture filters. The add_filters.ps1 script, like all the other PowerShell scripts in the directory reads the `.env` file for environment
+  settings, so you may need to adjust some values there for them to work (in particular the ADMIN_USER_* variables and possibly the CA_CERT variable.)
 
 ## Understanding Project Settings
 
-In this Quarkus project I'm using two kinds of configuration variable overrides. First, there's the Apache Maven `pom.xml` file. It contains properties in two different places; up near the top in the properties section, and down near the bottom in the `<profiles>` section. The properties up top are used all the time, unless overridden by something in the `<properties>` section, or by another Maven file called `settings.xml` that's stored in `$HOME/.m2/`. There's also a `<resources>` section in the `pom.xml` file which controls how files in the `src/main/resources` folder are filtered. The filtering is what is used to substitute values in files such as `application.properties`, `index.html`, and `keycloak.json`. The `<profiles>` section properties can be used to override the main section properties by building maven with an extra `-P [profile_name]` flag. Profiles can also be selected automatically using an `<activations>` section. In the case of building on Linux, the `linux` profile is selected automatically because it's `<activation>` section specifies to activate the profile based on it being a `Linux` operating system. The effect of this profile is to change the startCaptureScript property to a Linux specific startCaptureScript, rather than the Windows one that's set in the main properties section.
+In this Quarkus project I'm using two kinds of configuration variable overrides. First, there's the Apache Maven `pom.xml` file. It contains properties in two different places; up near the top in the properties section, and down near the bottom in the `<profiles>` section. The properties up top are used all the time, unless overridden by something in the profiles section, or by another Maven file called `settings.xml` that's stored in `$HOME/.m2/`. There's also a `<resources>` section in the `pom.xml` file which controls how files in the `src/main/resources` folder are filtered. The filtering is what is used to substitute values in files such as `application.properties`. The `<profiles>` section properties can be used to override the main section properties by building maven with an extra `-P [profile_name]` flag. Profiles can also be activated automatically using an `<activations>` section. In the case of building on Linux, the `linux` profile is selected automatically because it's `<activation>` section specifies to activate the profile based on it being a `Linux` operating system. The effect of this profile is to change the startCaptureScript property to a Linux specific startCaptureScript, rather than the Windows one that's set in the main properties section.
 
-Now, asside from Maven filtering, there's also Quarkus/Eclipse Microprofile settings. Project properties for Quarkus can be set in it's `application.properties` file. Properties in this file are used by the various Quarkus subsystems such as database persistence, or Open-ID connect (OIDC) integration. The can also be used to directly inject values into Java Bean fields using the `@ConfigProperty` annotation. Quarkus properties also have their own override mechanisms. For one, if a property starts with `%dev.`, `%test.`, or `%prod.`, these properties are only active when Quarkus is running in dev, test or prod mode. This allows you to set a property differently for testing or development, than you would for production. This is important for databases, because typically you don't want testing to affect either your development or production databases. In fact, it's quite common to use an in-memory database that simply gets thrown away after the test.
+Now, asside from Maven filtering, there's also Quarkus/Eclipse Microprofile settings. Project properties for Quarkus can be set in it's `application.properties` file. Properties in this file are used by the various Quarkus subsystems such as database persistence, or Open-ID connect (OIDC) integration. The can also be used to directly inject values into Java Bean fields using a `@ConfigProperty` annotation. Quarkus properties also have their own override mechanisms. For one, if a property starts with `%dev.`, `%test.`, or `%prod.`, these properties are only active when Quarkus is running in dev, test or prod mode. This allows you to set a property differently for testing or development, than you would for production. This is important for databases, because typically you don't want testing to affect either your development or production databases. In fact, it's quite common to use an in-memory database that simply gets thrown away after the test.
 
 But Quarkus also has an environment variable override mechanism. If you take a property name, and convert it all to upper case, and change periods and dashes to underscore (`_`) characters, and you set this in the environment, it will override the property in the `application.properties` file. This is useful for deployment to Docker containers, Kubernetes, etc. There's also a place to put environment variable overrides in your project folder called the `.env` file.
 
@@ -56,7 +54,7 @@ Sometimes a database schema upgrade may be necessary, and I haven't integrated f
 
 ## The .env File (stored in your project's top level folder)
 
-(This file configures the back-end web service, it doesn't affect the web client.)
+This file is read by Quarkus to configure the back-end web service, it doesn't affect the web client. It's also used by the PowerShell scripts in the user_scripts and admin_scripts directories.
 
 ```shell script
 # These directly override properties in application.properties. This gets done after
@@ -75,7 +73,21 @@ QUARKUS_KEYCLOAK_DEVSERVICES_REALM_NAME=your_keycloak_realm
 ADMIN_USER_NAME=alice
 ADMIN_USER_PASSWORD=downtherabbithole
 API_SERVER=http://your.api.server:port
-CA_CERT=root-ca-cert.crt
+
+# The CA cert is only needed if you're using an internal Certificate Authority's CA certificate that has no
+# trust chain to a public CA, or is otherwise unrecognized by the HttPie tool (or probably the underlying python)
+# If you're just working in development mode, and your API and Keycloak servers aren't using SSL, then this isn't
+# necessary. If you're not using an internal enterprise CA, then set both of these to nothing (leave the assignment
+# empty). In our case, we use a public CA for our Keycloak server, so it's left empty. And we use a enterprise
+# certificate for our API server, so it's normally set. However, when I'm connecting to localhost for development,
+# I also leave the API_CA_CERT as an empty value, or just comment it out.
+#
+# Beware, that this script has an effect on the environment after it runs. So if you comment out a variable, instead
+# of setting it to an empty value, the previously set value from this file will still be in effect. So either leave
+# the variables in, and set them to empty, or else start another PowerShell window.
+
+KEYCLOAK_CA_CERT=C:/full/path/to/pem/encoded/ca_certificate_for_keycloak.crt
+API_CA_CERT=C:/full/path/to/pem/encoded/ca_certificate_for_api.crt
 ```
 
 The `QUARKUS_OIDC_CREDENTIALS_SECRET` must match the `Keycloak -> Quarkus Realm -> Clients -> Backend-service -> Credentials -> Secret`. For security you should regenerate the secret. The frontend-client does not have a credentials secret because it's configured with "Access Type" set to "public". This is necessary because JavaScript based clients have no secure way to store the credentials. It's necessary to take additional security precautions for this reason. In particular, you should make sure the `Valid Redirect URIs` field is as specific as possible (so don't use `*` by itself for instance).

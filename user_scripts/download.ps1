@@ -1,3 +1,4 @@
+$dbid=$args[0]
 
 # Read environment vqriables from the ".env" file - if it exists.
 
@@ -11,13 +12,31 @@ if (Test-Path .env) {
             Set-Location $location
         }
     }
+} elseif (Test-Path ..\.env) {
+    foreach($line in Get-Content ..\.env) {
+        if($line -and !$line.startsWith("#")) {
+            $vars=$line.Split("=")
+            $location=Get-Location
+            Set-Location Env:
+            Set-Content -Path $vars[0] -Value $vars[1]
+            Set-Location $location
+        }
+    }
+}
+
+if($ENV:API_CA_CERT -and (Test-Path $ENV:API_CA_CERT)) {
+    $API_VERIFY="--verify=$ENV:API_CA_CERT"
+}
+
+if($ENV:KEYCLOAK_CA_CERT -and (Test-Path $ENV:KEYCLOAK_CA_CERT)) {
+    $KEYCLOAK_VERIFY="--verify=$ENV:KEYCLOAK_CA_CERT"
 }
 
 # Get the access token from the keycloak server using the environment settings (read from the file, or set prior to this script) if possible.
 
 if($ENV:QUARKUS_OIDC_AUTH_SERVER_URL -and $ENV:QUARKUS_OIDC_CREDENTIALS_SECRET) {
 
-    $access_token=(http -a backend-service:$ENV:QUARKUS_OIDC_CREDENTIALS_SECRET --form POST $ENV:QUARKUS_OIDC_AUTH_SERVER_URL/protocol/openid-connect/token username="$ENV:ADMIN_USER_NAME" password="$ENV:ADMIN_USER_PASSWORD" grant_type=password | jq --raw-output '.access_token')
+    $access_token=(http $KEYCLOAK_VERIFY -a backend-service:$ENV:QUARKUS_OIDC_CREDENTIALS_SECRET --form POST $ENV:QUARKUS_OIDC_AUTH_SERVER_URL/protocol/openid-connect/token username="$ENV:ADMIN_USER_NAME" password="$ENV:ADMIN_USER_PASSWORD" grant_type=password | jq --raw-output '.access_token')
 
 } else {
 
@@ -40,23 +59,12 @@ if($ENV:QUARKUS_OIDC_AUTH_SERVER_URL -and $ENV:QUARKUS_OIDC_CREDENTIALS_SECRET) 
 
     }
 
-    Write-Host "Keycloak docker port is $port"
-
     # Get the access token using the default credentials.
 
-    $access_token=(http -a backend-service:secret --form POST :$port/auth/realms/quarkus/protocol/openid-connect/token username="$ENV:ADMIN_USER_NAME" password="$ENV:ADMIN_USER_PASSWORD" grant_type=password | jq --raw-output '.access_token')
+    $access_token=(http $KEYCLOAK_VERIFY -a backend-service:secret --form POST :$port/auth/realms/quarkus/protocol/openid-connect/token username="$ENV:ADMIN_USER_NAME" password="$ENV:ADMIN_USER_PASSWORD" grant_type=password | jq --raw-output '.access_token')
 
 }
 
-if($ENV:CA_CERT -and (Test-Path $ENV:CA_CERT)) {
-    $VERIFY="--verify=$ENV:CA_CERT"
-}
+Write-Host "Downloading capture..."
 
-Write-Host "Starting capture"
-
-# One thing to keep in mind: All of these scripts use what's called a "Direct Access Grant". If you turn that off in Keycloak for the backend-service client,
-# it will block these scripts from running. But the users will still be able to use the frontend-client web page, because that's considered the "Standard Flow".
-
-$dbid=(http -b $VERIFY POST $ENV:API_SERVER/api/capture/all "Authorization:Bearer $access_token")
-
-Write-Host "Capture ID is $dbid"
+http -b $API_VERIFY GET $ENV:API_SERVER/api/capture/$dbid "Authorization:Bearer $access_token" --download -o capture.pcapng
