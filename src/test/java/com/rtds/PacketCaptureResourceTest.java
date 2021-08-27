@@ -37,8 +37,19 @@ public class PacketCaptureResourceTest
 
     @Test
     @Order( 1 )
-    @TestSecurity( user = "alice", roles = "user" )
-    public void testStartEndpoint()
+    @TestSecurity( user = "alice", roles = "filter_admin" )
+    public void testStartEndpointAsFilterAdmin()
+    {
+        given()
+                .when().post( "/api/capture/all" )
+                .then()
+                .statusCode( 403 );
+    }
+
+    @Test
+    @Order( 2 )
+    @TestSecurity( user = "alice", roles = "admin" )
+    public void testStartEndpointAsAdmin()
     {
         id = given()
                 .when().post( "/api/capture/all" )
@@ -51,9 +62,21 @@ public class PacketCaptureResourceTest
     }
 
     @Test
-    @Order( 2 )
-    @TestSecurity( user = "alice", roles = "user" )
-    public void testStopEndpoint()
+    @Order( 3 )
+    @TestSecurity( user = "alice", roles = "filter_admin" )
+    public void testStopEndpointAsFilterAdmin()
+    {
+        given()
+                .pathParam( "id", id )
+                .when().put( "/api/capture/{id}" )
+                .then()
+                .statusCode( 403 );
+    }
+
+    @Test
+    @Order( 4 )
+    @TestSecurity( user = "alice", roles = "admin" )
+    public void testStopEndpointAsAdmin()
     {
         given()
                 .pathParam( "id", id )
@@ -63,9 +86,20 @@ public class PacketCaptureResourceTest
     }
 
     @Test
-    @Order( 3 )
-    @TestSecurity( user = "alice", roles = "user" )
-    public void testListEndpoint()
+    @Order( 5 )
+    @TestSecurity( user = "alice", roles = "filter_admin" )
+    public void testListEndpointAsFilterAdmin()
+    {
+        given()
+                .when().get( "/api/capture" )
+                .then()
+                .statusCode( 403 );
+    }
+
+    @Test
+    @Order( 6 )
+    @TestSecurity( user = "alice", roles = "admin" )
+    public void testListEndpointAsAdmin()
     {
         given()
                 .when().get( "/api/capture" )
@@ -74,9 +108,32 @@ public class PacketCaptureResourceTest
     }
 
     @Test
-    @Order( 4 )
+    @Order( 6 )
     @TestSecurity( user = "alice", roles = "user" )
-    public void testReadEndpoint()
+    public void testListEndpointAsUser()
+    {
+        given()
+                .when().get( "/api/capture" )
+                .then()
+                .statusCode( 200 );
+    }
+
+    @Test
+    @Order( 6 )
+    @TestSecurity( user = "alice", roles = "filter_admin" )
+    public void testReadEndpointAsFilterAdmin()
+    {
+        given()
+                .pathParam( "id", id )
+                .when().get( "/api/capture/{id}" )
+                .then()
+                .statusCode( 403 );
+    }
+
+    @Test
+    @Order( 6 )
+    @TestSecurity( user = "alice", roles = "admin" )
+    public void testReadEndpointAsAdmin()
     {
         given()
                 .pathParam( "id", id )
@@ -88,9 +145,35 @@ public class PacketCaptureResourceTest
     }
 
     @Test
-    @Order( 5 )
+    @Order( 6 )
     @TestSecurity( user = "alice", roles = "user" )
-    public void testDeleteEndpoint()
+    public void testReadEndpointAsUser()
+    {
+        given()
+                .pathParam( "id", id )
+                .when().get( "/api/capture/{id}" )
+                .then()
+                .header( "Content-Disposition", is( "attachment;filename=capture.pcapng" ) )
+                .contentType( ContentType.BINARY )
+                .statusCode( 200 );
+    }
+
+    @Test
+    @Order( 7 )
+    @TestSecurity( user = "alice", roles = "filter_admin" )
+    public void testDeleteEndpointAsFilterAdmin()
+    {
+        given()
+                .pathParam( "id", id )
+                .when().delete( "/api/capture/{id}" )
+                .then()
+                .statusCode( 403 );
+    }
+
+    @Test
+    @Order( 8 )
+    @TestSecurity( user = "alice", roles = "admin" )
+    public void testDeleteEndpointAsAdmin()
     {
         given()
                 .pathParam( "id", id )
@@ -100,9 +183,9 @@ public class PacketCaptureResourceTest
     }
 
     @Test
-    @Order( 6 )
+    @Order( 9 )
     @TestSecurity( user = "alice", roles = "user" )
-    public void testStartGooseEndpoint()
+    public void testStartGooseEndpointAsUser()
     {
         id = given()
                 .when().post( "/api/capture/goose" )
@@ -115,9 +198,9 @@ public class PacketCaptureResourceTest
     }
 
     @Test
-    @Order( 7 )
+    @Order( 10 )
     @TestSecurity( user = "alice", roles = "user" )
-    public void testStopEndpoint2()
+    public void testStopEndpointAsUser()
     {
         given()
                 .pathParam( "id", id )
@@ -127,9 +210,9 @@ public class PacketCaptureResourceTest
     }
 
     @Test
-    @Order( 8 )
+    @Order( 11 )
     @TestSecurity( user = "alice", roles = "user" )
-    public void testDeleteEndpoint2()
+    public void testDeleteEndpointAsUser()
     {
         given()
                 .pathParam( "id", id )
@@ -139,7 +222,7 @@ public class PacketCaptureResourceTest
     }
 
     @Test
-    @Order( 9 )
+    @Order( 12 )
     @TestSecurity( user = "alice", roles = "user" )
     public void testStartGSEEndpoint()
     {
@@ -154,7 +237,7 @@ public class PacketCaptureResourceTest
     }
 
     @Test
-    @Order( 10 )
+    @Order( 13 )
     @TestSecurity( user = "alice", roles = "user" )
     public void testStopEndpoint3()
     {
@@ -166,7 +249,7 @@ public class PacketCaptureResourceTest
     }
 
     @Test
-    @Order( 11 )
+    @Order( 14 )
     @TestSecurity( user = "alice", roles = "user" )
     public void testDeleteEndpoint3()
     {
@@ -178,7 +261,7 @@ public class PacketCaptureResourceTest
     }
 
     @Test
-    @Order( 12 )
+    @Order( 15 )
     @TestSecurity( user = "alice", roles = "user" )
     public void testStartSVEndpoint()
     {
@@ -193,7 +276,7 @@ public class PacketCaptureResourceTest
     }
 
     @Test
-    @Order( 13 )
+    @Order( 16 )
     @TestSecurity( user = "alice", roles = "user" )
     public void testStopEndpoint4()
     {
@@ -205,7 +288,7 @@ public class PacketCaptureResourceTest
     }
 
     @Test
-    @Order( 14 )
+    @Order( 17 )
     @TestSecurity( user = "alice", roles = "user" )
     public void testDeleteEndpoint4()
     {

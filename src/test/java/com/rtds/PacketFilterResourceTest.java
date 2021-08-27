@@ -47,9 +47,23 @@ public class PacketFilterResourceTest
     }
 
     @Test
-    @Order( 2 )
+    @Order( 1 )
     @TestSecurity( user = "alice", roles = "admin" )
     public void testAddFilterAsAdmin()
+    {
+        given()
+                .contentType( ContentType.JSON )
+                .and()
+                .body( "{ \"urlSuffix\": \"testsuffix\", \"label\": \"testlabel\", \"captureFilter\": \"testCaptureFilter\" }" )
+                .when().post( "/api/filter" )
+                .then()
+                .statusCode( 403 );
+    }
+
+    @Test
+    @Order( 2 )
+    @TestSecurity( user = "alice", roles = "filter_admin" )
+    public void testAddFilterAsFilterAdmin()
     {
         given()
                 .contentType( ContentType.JSON )
@@ -73,9 +87,21 @@ public class PacketFilterResourceTest
     }
 
     @Test
-    @Order( 4 )
+    @Order( 3 )
     @TestSecurity( user = "alice", roles = "admin" )
     public void testDeleteMissingFilterAsAdmin()
+    {
+        given()
+                .pathParam( "url_suffix", "testsuffix2" )
+                .when().delete( "/api/filter/{url_suffix}" )
+                .then()
+                .statusCode( 403 );
+    }
+
+    @Test
+    @Order( 4 )
+    @TestSecurity( user = "alice", roles = "filter_admin" )
+    public void testDeleteMissingFilterAsFilterAdmin()
     {
         given()
                 .pathParam( "url_suffix", "testsuffix2" )
@@ -93,13 +119,47 @@ public class PacketFilterResourceTest
                 .pathParam( "url_suffix", "testsuffix" )
                 .when().delete( "/api/filter/{url_suffix}" )
                 .then()
-                .statusCode( 204 );
+                .statusCode( 403 );
     }
 
     @Test
     @Order( 6 )
-    @TestSecurity( user = "alice", roles = "user" )
+    @TestSecurity( user = "alice", roles = "filter_admin" )
+    public void testDeleteFilterAsFilterAdmin()
+    {
+        given()
+                .pathParam( "url_suffix", "testsuffix" )
+                .when().delete( "/api/filter/{url_suffix}" )
+                .then()
+                .statusCode( 204 );
+    }
+
+    @Test
+    @Order( 7 )
+    @TestSecurity( user = "alice", roles = "admin" )
+    public void testGetFiltersAsAdmin()
+    {
+        given()
+                .when().get( "/api/filter" )
+                .then()
+                .statusCode( 403 );
+    }
+
+    @Test
+    @Order( 8 )
+    @TestSecurity( user = "alice", roles = "filter_admin" )
     public void testGetFilters()
+    {
+        given()
+                .when().get( "/api/filter" )
+                .then()
+                .statusCode( 200 );
+    }
+
+    @Test
+    @Order( 9 )
+    @TestSecurity( user = "alice", roles = "user" )
+    public void testGetFiltersAsUser()
     {
         given()
                 .when().get( "/api/filter" )

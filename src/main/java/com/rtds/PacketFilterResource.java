@@ -16,32 +16,33 @@ import javax.ws.rs.*;
  *
  * @author jdh
  */
-@Path("/api/filter")
+@Path( "/api/filter" )
 public class PacketFilterResource
 {
+
     @Inject
     CaptureTypeService captureTypeService;
-    
+
     @POST
-    @RolesAllowed("admin")
+    @RolesAllowed( "filter_admin" )
     public void addFilter( CaptureType type )
     {
         captureTypeService.createOrUpdateCaptureType( type );
     }
-    
+
     @DELETE
-    @Path("/{url_suffix}")
-    @RolesAllowed("admin")
-    public void deleteFilter( @PathParam("url_suffix") String url_suffix )
+    @Path( "/{url_suffix}" )
+    @RolesAllowed( "filter_admin" )
+    public void deleteFilter( @PathParam( "url_suffix" ) String url_suffix )
     {
         captureTypeService.deleteCaptureType( url_suffix );
     }
-    
+
     @GET
-    @RolesAllowed("user")
+    @RolesAllowed( { "user", "filter_admin" } )
     public List<CaptureType> getFilters()
     {
         return captureTypeService.list();
     }
-    
+
 }

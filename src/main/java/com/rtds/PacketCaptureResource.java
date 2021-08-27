@@ -68,7 +68,7 @@ public class PacketCaptureResource
     @POST
     @Path("/{type}")
     @Produces( MediaType.TEXT_PLAIN )
-    @RolesAllowed("user")
+    @RolesAllowed( { "user", "admin" } )
     public Response startTypedCapture( @PathParam("type") String type ) throws IOException, GeneralSecurityException
     {
         String filter = captureTypeService.findFilter( type );
@@ -152,7 +152,7 @@ public class PacketCaptureResource
     @PUT
     @Path("/{id}")
     @Produces( MediaType.TEXT_PLAIN )
-    @RolesAllowed("user")
+    @RolesAllowed( { "user", "admin" } )
     @NoCache
     public Response stopCapture( @PathParam("id") String id ) throws IOException, GeneralSecurityException
     {
@@ -183,7 +183,7 @@ public class PacketCaptureResource
     
     @GET
     @Produces( MediaType.APPLICATION_JSON )
-    @RolesAllowed("user")
+    @RolesAllowed( { "user", "admin" } )
     @NoCache
     public Response list()
     {
@@ -195,7 +195,7 @@ public class PacketCaptureResource
     @GET
     @Path("/{id}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @RolesAllowed("user")
+    @RolesAllowed( { "user", "admin" } )
     @NoCache
     public Response readCapture( @PathParam("id") String id ) throws IOException, InterruptedException, GeneralSecurityException
     {
@@ -220,7 +220,7 @@ public class PacketCaptureResource
     @DELETE
     @Path("/{id}")
     @Produces(MediaType.TEXT_PLAIN)
-    @RolesAllowed("user")
+    @RolesAllowed( { "user", "admin" } )
     @NoCache
     public Response deleteCapture( @PathParam("id") String id ) throws IOException, GeneralSecurityException
     {

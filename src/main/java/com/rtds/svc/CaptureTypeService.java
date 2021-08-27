@@ -25,6 +25,11 @@ public class CaptureTypeService
     
     public void createOrUpdateCaptureType( CaptureType value )
     {
+        if( value == null || value.getLabel() == null || value.getUrlSuffix() == null )
+        {
+            throw new IllegalArgumentException( "The CaptureType, it's label and url_suffix must not be null." );
+        }
+        
         CaptureType persistent = em.find( CaptureType.class, value.getUrlSuffix() );
         
         if( persistent != null )
@@ -40,6 +45,11 @@ public class CaptureTypeService
     
     public String findFilter( String url_suffix )
     {
+        if( url_suffix == null )
+        {
+            throw new IllegalArgumentException( "The url_suffix must not be null." );
+        }
+        
         CaptureType type = em.find( CaptureType.class, url_suffix );
         
         if( type != null )
@@ -62,6 +72,11 @@ public class CaptureTypeService
     
     public void deleteCaptureType( String url_suffix )
     {
+        if( url_suffix == null )
+        {
+            throw new IllegalArgumentException( "The url_suffix must not be null." );
+        }
+        
         CaptureType persistent = em.find( CaptureType.class, url_suffix );
         
         if( persistent != null )
@@ -69,4 +84,5 @@ public class CaptureTypeService
             em.remove( persistent );
         }
     }
+    
 }
