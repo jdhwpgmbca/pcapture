@@ -32,7 +32,17 @@ public class PcapApplicationTest
 
     @Test
     @TestSecurity( user = "alice", roles = "user" )
-    public void testGetConfigJson()
+    public void testGetConfigJsonAsUser()
+    {
+        given()
+                .when().get( "/api/res/configjson" )
+                .then()
+                .statusCode( 200 );
+    }
+
+    @Test
+    @TestSecurity( user = "alice", roles = "admin" )
+    public void testGetConfigJsonAsAdmin()
     {
         given()
                 .when().get( "/api/res/configjson" )
