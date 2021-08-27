@@ -10,6 +10,11 @@ If you want to learn more about Quarkus, please visit its website: https://quark
 - The project can be secured using an `OpenID-connect` compatible server like `Keycloak`.
 - The start commands return a unique UUID (Universally Unique Identifier), which is then used as a path parameter for the other commands (except list).
 
+## Important Changes
+
+- You'll now need to add another admin role to Keycloaks roles secton called `filter_admin`, and add that role to any user that needs to administer capture filters. I thought that it made sense to keep the role that allowed users to stop/download/delete other users captures separate from the role tha allows filter administration. Probably you'll want several people that can see other's captures, but very few people that should have the ability to add/remove capture filters, due to it's security sensitivity.
+- When you're running in quarkus:dev mode the database will automatically use the `drop-and-create` strategy on the database. That means it will delete the contents of the database on every run, and will pre-populate the database with filters for Goose, GSE, SV, and PTP. However, in production mode (when you're running as a service for instance), it only updates the database schema, it doesn't delete the data. Even updating the database schema isn't supposed to be done in production, but at this point the schema isn't mature. You're free to change this in your settings.xml to override this behaviour. However, one of the downsides of turning off the `update` strategy for production databases is that it will not be able to create the initial database automatically on deployment. One possible solution for this is to use the `update` strategy initially, but then switch it to `none`.
+
 ## Status and Future Directions
 
 - At this point the web service must tie in with a an `OpenID-connect` authentication server like `Keycloak`.
