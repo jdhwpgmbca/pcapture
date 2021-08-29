@@ -6,9 +6,12 @@ If you want to learn more about Quarkus, please visit its website: https://quark
 
 - The idea for the project is to use the Wireshark `dumpcap.exe` (or `tcpdump`) program to capture packets into a temporary .pcapng file,
   then retrieve the capture at an arbitrary later time.
-- There are eight commands: `startAll`, `startGoose`, `startGSE`, `startSV`, `stop`, `read`, `delete` and `list`.
-- The project can be secured using an `OpenID-connect` compatible server like `Keycloak`.
-- The start commands return a unique UUID (Universally Unique Identifier), which is then used as a path parameter for the other commands (except list).
+- The project is secured using an `OpenID-connect` compatible server like `Keycloak`.
+- There are 5 primary API commands: `start`, `stop`, `read`, `delete` and `list`.
+- The start command also has a capture type parameter that allows you to select different capture filters.
+- The capture filters are registered in the database, and can be added or removed using the filter API by a users with the `filter_admin` role.
+- Users with the `admin` role can stop, download and delete captures made by other users.
+- The start command returns a unique UUID (Universally Unique Identifier), which is then used as a path parameter for the other primary API commands (except list).
 
 ## Important Changes
 
@@ -27,8 +30,8 @@ If you want to learn more about Quarkus, please visit its website: https://quark
 - The docker `--net=host` flag is a problem on Windows. At this point in time, it doesn't work at all because there's no bridging between the Docker Linux VM and the Windows physical interface.
   As a workaround, I've removed the `--net=host` and added `-p 8080:8080` flags. However, while you can connect to the interface and capture packets, you're only able to do it on the Docker private
   network - which isn't really useful.
-- I'm now using an `Alpine Linux` based `Docker` image, and use `tcpdump` rather than Wireshark's `dumpcap` program.
-- I can always switch back to Wireshark's `dumpcap` if we need it, but that would greatly increase the Docker image size.
+- I'm now using an `Alpine Linux` based `Docker` image, and use `tcpdump` rather than Wireshark's `dumpcap` program. This takes *MUCH* less time to build, and produces a much smaller Docker image than the Ubuntu based image I was using before.
+- I can always switch back to Wireshark's `dumpcap` if we need it, but that would greatly increase the Docker image size. This is mostly due to the fact that dumpcap isn't packaged separately from Wireshark, and Wireshark has a lot of graphical user interface dependencies.
 - It's unlikely that you'll be able to run the Docker image inside a `Kubernetes` cluster, because `Kubernetes` uses separate internal Pod networks. Most traffic is redirected into Kubernetes clusters via LoadBalancer and Ingress resources.
 - You may want to write a separate standalone client web application to furthur separate the `frontend-client` from the `backend-service` in terms of security.
 - There's now an `add_filter.ps1` script that *MUST* be used after installation to add/remove capture filters. The add_filters.ps1 script, like all the other PowerShell scripts in the directory reads the `.env` file for environment
@@ -48,10 +51,7 @@ Personally, I put generic, non-site-specific values in the `pom.xml` and `applic
 
 ## Database Configuration
 
-The src`/main/resources/application.properties` file contains a value called `quarkus.hibernate-orm.database.generation` which is
-set to `drop-and-create`. This is a useful development setting that drops the database on every startup. However, you'll more than
-likely want to change this to `none` instead once you have your database up and going, otherwise you'll have inconsistencies
-between what's been captured and what's listed in the database. The way I'd recommend to do this is to set `QUARKUS_HIBERNATE_ORM_DATABASE_GENERATION=none` for production, or you can use update for development. The tricky part about production is that you'll need to copy a fully provisioned database file into the docker image, unless you want to connect to an external production database like MySQL or Postgres (recommended).
+The src`/main/resources/application.properties` file contains a value called `quarkus.hibernate-orm.database.generation` which is set to `drop-and-create`. This is a useful development setting that drops the database on every startup. However, you'll more than likely want to change this to `none` instead once you have your database up and going, otherwise you'll have inconsistencies between what's been captured and what's listed in the database. The way I'd recommend to do this is to set `QUARKUS_HIBERNATE_ORM_DATABASE_GENERATION=none` for production, or you can use update for development. The tricky part about production is that you'll need to copy a fully provisioned database file into the docker image, unless you want to connect to an external production database like MySQL or Postgres (recommended).
 
 # Database Schema Upgrades
 
@@ -73,10 +73,10 @@ QUARKUS_OIDC_AUTH_SERVER_URL=https://your_keycloak_server/auth/realms/your_keycl
 QUARKUS_OIDC_CREDENTIALS_SECRET=your_keycloak_backend_service_credentials
 QUARKUS_KEYCLOAK_DEVSERVICES_REALM_NAME=your_keycloak_realm
 
-# Used for scripts
+# Used for scripts - you'll likely want to change these.
 
 ADMIN_USER_NAME=alice
-ADMIN_USER_PASSWORD=downtherabbithole
+ADMIN_USER_PASSWORD=alice
 API_SERVER=http://your.api.server:port
 
 # The CA cert is only needed if you're using an internal Certificate Authority's CA certificate that has no
@@ -132,32 +132,19 @@ The token replacements are done to help you get started quickly, and also to rem
 
 # Configuring the Web client in Keycloak
 
-You'll need to login to your Keycloak server as a user with the `admin` role and switch to the Quarkus realm. The Keycloak server
-that's run by `quarkus:dev` uses `admin` as a username, and `admin` as the password. Once you're logged in, create a new client
-called `frontend-client` using `openid-connect` as the client protocol. In the `Valid Redirect URIs` field, type `http://localhost:8080/*`,
-or whatever your web service URL is running under. This tells the Keycloak server that it's okay to redirect the user back to
-`http://localhost:8080/*` after successful authentication. This is very important for security that it match the web client URL. Also, for
-the `Web Origins` section, add a single line containing only the `+` sign. Of course later when you deploy this to production, you'll need
-to change these URL's to a public, or at least corporate facing URL.
+You'll need to login to your Keycloak server as a user with the `admin` role and switch to the Quarkus realm. The Keycloak server that's run by `quarkus:dev` uses `admin` as a username, and `admin` as the password. Once you're logged in, create a new client called `frontend-client` using `openid-connect` as the client protocol. In the `Valid Redirect URIs` field, type `http://localhost:8080/*`, or whatever your web service URL is running under. This tells the Keycloak server that it's okay to redirect the user back to `http://localhost:8080/*` after successful authentication. This is very important for security that it match the web client URL. Also, for the `Web Origins` section, add a single line containing only the `+` sign. Of course later when you deploy this to production, you'll need to change these URL's to a public, or at least corporate facing URL.
 
-There used to be a file called keycloak.json that had to be configured for the client. Now that file is generated automatically and is available
-at /api/res/configjson. It's a public URL, and is not protected, and it doesn't need to be.
+There used to be a file called keycloak.json that had to be configured for the client. Now that file is generated automatically and is available at /api/res/configjson. It's a public URL, and is not protected, and it doesn't need to be.
 
 ## Authentication and Authorization
 
-The application is now fully integrated with authorization servers supporting the `Open-ID Connect` standard (`OIDC` for short).
-If you're running docker on your development workstation, all you need to do is run `quarkus:dev`. It will run a keycloak
-server in the background, that's fully provisioned and setup for testing. Be warned, the web client doesn't work with this
-unless you manually edit the web client configuration file (`keycloak.json`), and the `index.html` file to point to the keycloak
-server. It may be easier to run keycloak from docker manually, and import the realm file below if you want to use the web client.
+The application is now fully integrated with authorization servers supporting the `Open-ID Connect` standard (`OIDC` for short). If you're running docker on your development workstation, all you need to do is run `quarkus:dev`. It will run a keycloak server in the background, that's fully provisioned and setup for testing. Be warned, the web client doesn't work with this unless you manually edit the web client configuration file (`keycloak.json`), and the `index.html` file to point to the keycloak server. It may be easier to run keycloak from docker manually, and import the realm file below if you want to use the web client.
 
 If you wish to setup a standalone keycloak server, you can import this realm as a quick-start:
 
 `https://github.com/quarkusio/quarkus-quickstarts/blob/main/security-openid-connect-quickstart/config/quarkus-realm.json`
 
-The file creates a realm with some default passwords that the application has configured in it's `application.properties` file.
-These passwords are very bad, so you might want to update them right away. There's also a client secret that should be
-regenerated.
+The file creates a realm with some default passwords that the application has configured in it's `application.properties` file. These passwords are very bad, so you might want to update them right away. There's also a client secret that should be regenerated.
 
 # Windows Service Deployment
 
