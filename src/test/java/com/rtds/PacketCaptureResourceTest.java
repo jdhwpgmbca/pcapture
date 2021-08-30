@@ -43,7 +43,7 @@ public class PacketCaptureResourceTest
         given()
                 .when().post( "/api/capture/all" )
                 .then()
-                .statusCode( 403 );
+                .statusCode( 403 ); // FORBIDDEN
     }
 
     @Test
@@ -54,7 +54,7 @@ public class PacketCaptureResourceTest
         id = given()
                 .when().post( "/api/capture/all" )
                 .then()
-                .statusCode( 200 )
+                .statusCode( 200 ) // OK
                 .body( containsString( "-" ) )
                 .extract().asString();
 
@@ -70,7 +70,7 @@ public class PacketCaptureResourceTest
                 .pathParam( "id", id )
                 .when().put( "/api/capture/{id}" )
                 .then()
-                .statusCode( 403 );
+                .statusCode( 403 ); // FORBIDDEN
     }
 
     @Test
@@ -82,7 +82,7 @@ public class PacketCaptureResourceTest
                 .pathParam( "id", id )
                 .when().put( "/api/capture/{id}" )
                 .then()
-                .statusCode( 200 );
+                .statusCode( 200 ); // OK
     }
 
     @Test
@@ -93,7 +93,7 @@ public class PacketCaptureResourceTest
         given()
                 .when().get( "/api/capture" )
                 .then()
-                .statusCode( 403 );
+                .statusCode( 403 ); // FORBIDDEN
     }
 
     @Test
@@ -104,7 +104,7 @@ public class PacketCaptureResourceTest
         given()
                 .when().get( "/api/capture" )
                 .then()
-                .statusCode( 200 );
+                .statusCode( 200 ); // OK
     }
 
     @Test
@@ -115,7 +115,7 @@ public class PacketCaptureResourceTest
         given()
                 .when().get( "/api/capture" )
                 .then()
-                .statusCode( 200 );
+                .statusCode( 200 ); // OK
     }
 
     @Test
@@ -127,7 +127,7 @@ public class PacketCaptureResourceTest
                 .pathParam( "id", id )
                 .when().get( "/api/capture/{id}" )
                 .then()
-                .statusCode( 403 );
+                .statusCode( 403 ); // FORBIDDEN
     }
 
     @Test
@@ -141,7 +141,7 @@ public class PacketCaptureResourceTest
                 .then()
                 .header( "Content-Disposition", is( "attachment;filename=capture.pcapng" ) )
                 .contentType( ContentType.BINARY )
-                .statusCode( 200 );
+                .statusCode( 200 ); // OK
     }
 
     @Test
@@ -155,7 +155,7 @@ public class PacketCaptureResourceTest
                 .then()
                 .header( "Content-Disposition", is( "attachment;filename=capture.pcapng" ) )
                 .contentType( ContentType.BINARY )
-                .statusCode( 200 );
+                .statusCode( 200 ); // OK
     }
 
     @Test
@@ -167,7 +167,7 @@ public class PacketCaptureResourceTest
                 .pathParam( "id", id )
                 .when().delete( "/api/capture/{id}" )
                 .then()
-                .statusCode( 403 );
+                .statusCode( 403 ); // FORBIDDEN
     }
 
     @Test
@@ -179,7 +179,7 @@ public class PacketCaptureResourceTest
                 .pathParam( "id", id )
                 .when().delete( "/api/capture/{id}" )
                 .then()
-                .statusCode( 200 );
+                .statusCode( 200 ); // OK
     }
 
     @Test
@@ -190,7 +190,7 @@ public class PacketCaptureResourceTest
         id = given()
                 .when().post( "/api/capture/goose" )
                 .then()
-                .statusCode( 200 )
+                .statusCode( 200 ) // OK
                 .body( containsString( "-" ) )
                 .extract().asString();
 
@@ -206,7 +206,7 @@ public class PacketCaptureResourceTest
                 .pathParam( "id", id )
                 .when().put( "/api/capture/{id}" )
                 .then()
-                .statusCode( 200 );
+                .statusCode( 200 ); // OK
     }
 
     @Test
@@ -218,7 +218,7 @@ public class PacketCaptureResourceTest
                 .pathParam( "id", id )
                 .when().delete( "/api/capture/{id}" )
                 .then()
-                .statusCode( 200 );
+                .statusCode( 200 ); // OK
     }
 
     @Test
@@ -229,7 +229,7 @@ public class PacketCaptureResourceTest
         id = given()
                 .when().post( "/api/capture/gse" )
                 .then()
-                .statusCode( 200 )
+                .statusCode( 200 ) // OK
                 .body( containsString( "-" ) )
                 .extract().asString();
 
@@ -245,7 +245,7 @@ public class PacketCaptureResourceTest
                 .pathParam( "id", id )
                 .when().put( "/api/capture/{id}" )
                 .then()
-                .statusCode( 200 );
+                .statusCode( 200 ); // OK
     }
 
     @Test
@@ -257,7 +257,7 @@ public class PacketCaptureResourceTest
                 .pathParam( "id", id )
                 .when().delete( "/api/capture/{id}" )
                 .then()
-                .statusCode( 200 );
+                .statusCode( 200 ); // OK
     }
 
     @Test
@@ -268,7 +268,7 @@ public class PacketCaptureResourceTest
         id = given()
                 .when().post( "/api/capture/sv" )
                 .then()
-                .statusCode( 200 )
+                .statusCode( 200 ) // OK
                 .body( containsString( "-" ) )
                 .extract().asString();
 
@@ -284,7 +284,7 @@ public class PacketCaptureResourceTest
                 .pathParam( "id", id )
                 .when().put( "/api/capture/{id}" )
                 .then()
-                .statusCode( 200 );
+                .statusCode( 200 ); // OK
     }
 
     @Test
@@ -296,7 +296,7 @@ public class PacketCaptureResourceTest
                 .pathParam( "id", id )
                 .when().delete( "/api/capture/{id}" )
                 .then()
-                .statusCode( 200 );
+                .statusCode( 200 ); // OK
     }
 
 }
