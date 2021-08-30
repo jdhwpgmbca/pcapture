@@ -238,8 +238,15 @@ public class CaptureTypeServiceTest
         value.setCaptureFilter( "testfilter" );
         when( em.find( CaptureType.class, url_suffix ) ).thenReturn( null );
         String expResult = null;
-        String result = captureTypeService.findFilter( url_suffix );
-        assertEquals( expResult, result );
+        try
+        {
+            captureTypeService.findFilter( url_suffix );
+            fail( "Expected IllegalArgumentException not thrown." );
+        }
+        catch( IllegalArgumentException ex )
+        {
+            // expected fail.
+        }
     }
 
     /**

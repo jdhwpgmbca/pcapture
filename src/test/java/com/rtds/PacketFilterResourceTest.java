@@ -43,7 +43,7 @@ public class PacketFilterResourceTest
                 .body( "{ \"urlSuffix\": \"testsuffix\", \"label\": \"testlabel\", \"captureFilter\": \"testCaptureFilter\" }" )
                 .when().post( "/api/filter" )
                 .then()
-                .statusCode( 403 );
+                .statusCode( 403 ); // FORBIDDEN
     }
 
     @Test
@@ -57,7 +57,7 @@ public class PacketFilterResourceTest
                 .body( "{ \"urlSuffix\": \"testsuffix\", \"label\": \"testlabel\", \"captureFilter\": \"testCaptureFilter\" }" )
                 .when().post( "/api/filter" )
                 .then()
-                .statusCode( 403 );
+                .statusCode( 403 ); // FORBIDDEN
     }
 
     @Test
@@ -71,7 +71,7 @@ public class PacketFilterResourceTest
                 .body( "{ \"urlSuffix\": \"testsuffix\", \"label\": \"testlabel\", \"captureFilter\": \"testCaptureFilter\" }" )
                 .when().post( "/api/filter" )
                 .then()
-                .statusCode( 204 );
+                .statusCode( 204 ); // NO CONTENT
     }
 
     @Test
@@ -83,7 +83,7 @@ public class PacketFilterResourceTest
                 .pathParam( "url_suffix", "testsuffix" )
                 .when().delete( "/api/filter/{url_suffix}" )
                 .then()
-                .statusCode( 403 );
+                .statusCode( 403 ); // FORBIDDEN
     }
 
     @Test
@@ -95,7 +95,7 @@ public class PacketFilterResourceTest
                 .pathParam( "url_suffix", "testsuffix2" )
                 .when().delete( "/api/filter/{url_suffix}" )
                 .then()
-                .statusCode( 403 );
+                .statusCode( 403 ); // FORBIDDEN
     }
 
     @Test
@@ -107,7 +107,7 @@ public class PacketFilterResourceTest
                 .pathParam( "url_suffix", "testsuffix2" )
                 .when().delete( "/api/filter/{url_suffix}" )
                 .then()
-                .statusCode( 204 );
+                .statusCode( 400 ); // BAD REQUEST
     }
 
     @Test
@@ -119,7 +119,7 @@ public class PacketFilterResourceTest
                 .pathParam( "url_suffix", "testsuffix" )
                 .when().delete( "/api/filter/{url_suffix}" )
                 .then()
-                .statusCode( 403 );
+                .statusCode( 403 ); // FORBIDDEN
     }
 
     @Test
@@ -131,7 +131,7 @@ public class PacketFilterResourceTest
                 .pathParam( "url_suffix", "testsuffix" )
                 .when().delete( "/api/filter/{url_suffix}" )
                 .then()
-                .statusCode( 204 );
+                .statusCode( 204 ); // NO CONTENT
     }
 
     @Test
@@ -142,18 +142,18 @@ public class PacketFilterResourceTest
         given()
                 .when().get( "/api/filter" )
                 .then()
-                .statusCode( 403 );
+                .statusCode( 200 ); // OK
     }
 
     @Test
     @Order( 8 )
     @TestSecurity( user = "alice", roles = "filter_admin" )
-    public void testGetFilters()
+    public void testGetFiltersAsFilterAdmin()
     {
         given()
                 .when().get( "/api/filter" )
                 .then()
-                .statusCode( 200 );
+                .statusCode( 200 ); // OK
     }
 
     @Test
@@ -164,7 +164,7 @@ public class PacketFilterResourceTest
         given()
                 .when().get( "/api/filter" )
                 .then()
-                .statusCode( 200 );
+                .statusCode( 200 ); // OK
     }
 
 }

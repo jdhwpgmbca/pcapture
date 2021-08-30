@@ -17,6 +17,7 @@
 
 package com.rtds;
 
+import com.rtds.event.FilterEvent;
 import com.rtds.view.DumpcapProcessDefaultView;
 import com.rtds.jpa.DumpcapProcess;
 import com.rtds.svc.CaptureTypeService;
@@ -34,7 +35,9 @@ import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import javax.annotation.PostConstruct;
 import javax.annotation.security.RolesAllowed;
+import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -65,13 +68,31 @@ public class PacketCaptureResource
     @Inject
     SecurityIdentity identity;
     
+    int maxSuffixLength = 0;
+    
+    @PostConstruct
+    void postConstruct()
+    {
+        updateMaxSuffixLengthFromDatabase();
+    }
+    
+    void observeFilterEvent( @Observes FilterEvent event )
+    {
+        updateMaxSuffixLengthFromDatabase();
+    }
+    
     @POST
     @Path("/{type}")
     @Produces( MediaType.TEXT_PLAIN )
     @RolesAllowed( { "user", "admin" } )
-    public Response startTypedCapture( @PathParam("type") String type ) throws IOException, GeneralSecurityException
+    public Response startTypedCapture( @PathParam("type") String url_suffix ) throws IOException, GeneralSecurityException
     {
-        String filter = captureTypeService.findFilter( type );
+        if( url_suffix.length() > maxSuffixLength )
+        {
+            throw new IllegalArgumentException( "Capture type is invalid." );
+        }
+        
+        String filter = captureTypeService.findFilter( url_suffix );
         java.nio.file.Path script_path = java.nio.file.Path.of( startCaptureScript );
         
         logger.info(  "startCaptureScript path {}", startCaptureScript );
@@ -144,7 +165,7 @@ public class PacketCaptureResource
         // the database. This will be used later to lookup the process ID, and
         // to remove the capture file.
         
-        UUID dbid = dumpcapDbService.createDumpcapProcess(pid, path.toString(), type, principal_name );
+        UUID dbid = dumpcapDbService.createDumpcapProcess( pid, path.toString(), url_suffix, principal_name );
         
         return Response.ok( dbid ).build();
     }
@@ -156,7 +177,9 @@ public class PacketCaptureResource
     @NoCache
     public Response stopCapture( @PathParam("id") String id ) throws IOException, GeneralSecurityException
     {
-        if( id == null )
+        // UUID values are expected to be 36 characters long.
+        
+        if( id.length() != 36 )
         {
             return Response.status( Response.Status.BAD_REQUEST ).build();
         }
@@ -199,7 +222,9 @@ public class PacketCaptureResource
     @NoCache
     public Response readCapture( @PathParam("id") String id ) throws IOException, InterruptedException, GeneralSecurityException
     {
-        if( id == null )
+        // UUID values are expected to be 36 characters long.
+        
+        if( id.length() != 36 )
         {
             return Response.status( Response.Status.BAD_REQUEST ).build();
         }
@@ -224,7 +249,9 @@ public class PacketCaptureResource
     @NoCache
     public Response deleteCapture( @PathParam("id") String id ) throws IOException, GeneralSecurityException
     {
-        if( id == null )
+        // UUID values are expected to be 36 characters long.
+        
+        if( id.length() != 36 )
         {
             return Response.status( Response.Status.BAD_REQUEST ).build();
         }
@@ -285,4 +312,20 @@ public class PacketCaptureResource
         return false;
     }
 
+    private void updateMaxSuffixLengthFromDatabase()
+    {
+        Optional<Integer> max = captureTypeService.list().stream().map( ct -> ct.getUrlSuffix().length() ).max( Integer::compareTo );
+        
+        if( max.isPresent() )
+        {
+            maxSuffixLength = max.get();
+        }
+        else
+        {
+            maxSuffixLength = 0;
+        }
+
+        logger.info( "The longest URL suffix that's allowed is {}", maxSuffixLength );
+    }
+    
 }

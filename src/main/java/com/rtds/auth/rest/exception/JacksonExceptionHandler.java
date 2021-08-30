@@ -18,7 +18,7 @@
 package com.rtds.auth.rest.exception;
 
 import com.fasterxml.jackson.core.JacksonException;
-import com.rtds.auth.event.ApplicationEvent;
+import com.rtds.event.ApplicationEvent;
 
 import javax.enterprise.event.Event;
 import javax.inject.Inject;

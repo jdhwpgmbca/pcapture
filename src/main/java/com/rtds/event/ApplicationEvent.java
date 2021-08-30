@@ -15,7 +15,7 @@
  *   DAMAGE.
  */
 
-package com.rtds.auth.event;
+package com.rtds.event;
 
 /**
  *

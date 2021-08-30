@@ -17,7 +17,7 @@
 
 package com.rtds.auth.rest.exception;
 
-import com.rtds.auth.event.ApplicationEvent;
+import com.rtds.event.ApplicationEvent;
 import java.io.IOException;
 
 import javax.enterprise.event.Event;
