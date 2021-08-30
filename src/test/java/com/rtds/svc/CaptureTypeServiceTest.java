@@ -17,6 +17,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Disabled;
+import org.mockito.Mockito;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -282,6 +283,7 @@ public class CaptureTypeServiceTest
         System.out.println( "find" );
         String url_suffix = "sv";
         CaptureType expResult = null;
+        when( em.find( CaptureTypeService.class, url_suffix ) ).thenReturn( null );
         CaptureType result = captureTypeService.find( url_suffix );
         assertEquals( expResult, result );
     }
@@ -294,9 +296,9 @@ public class CaptureTypeServiceTest
     {
         System.out.println( "find" );
         String url_suffix = "sv";
-        CaptureType value = new CaptureType();
-        when( em.find( CaptureType.class, url_suffix ) ).thenReturn( value );
-        CaptureType expResult = value;
+        CaptureType persistent = new CaptureType();
+        when( em.find( CaptureType.class, url_suffix ) ).thenReturn( persistent );
+        CaptureType expResult = persistent;
         CaptureType result = captureTypeService.find( url_suffix );
         assertEquals( expResult, result );
     }
@@ -333,6 +335,19 @@ public class CaptureTypeServiceTest
         when( em.find( CaptureType.class, url_suffix ) ).thenReturn( persistent );
         captureTypeService.deleteCaptureType( url_suffix );
         verify( em ).remove( persistent );
+    }
+    
+    @Test
+    public void testDeleteCaptureType_notFound()
+    {
+        System.out.println( "deleteCaptureType" );
+        String url_suffix = "sv";
+        CaptureType persistent = new CaptureType();
+        persistent.setUrlSuffix( url_suffix );
+        when( em.find( CaptureType.class, url_suffix ) ).thenReturn( null );
+        captureTypeService.deleteCaptureType( url_suffix );
+        verify( em ).find( CaptureType.class, url_suffix );
+        Mockito.verifyNoMoreInteractions( em );
     }
     
     /**
