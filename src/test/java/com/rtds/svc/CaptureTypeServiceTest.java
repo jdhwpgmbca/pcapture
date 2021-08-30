@@ -184,6 +184,8 @@ public class CaptureTypeServiceTest
         value.setCaptureFilter( null );
         
         captureTypeService.createOrUpdateCaptureType( value );
+        
+        verify( em ).persist( value );
     }
 
     /**
@@ -237,7 +239,6 @@ public class CaptureTypeServiceTest
         CaptureType value = new CaptureType();
         value.setCaptureFilter( "testfilter" );
         when( em.find( CaptureType.class, url_suffix ) ).thenReturn( null );
-        String expResult = null;
         try
         {
             captureTypeService.findFilter( url_suffix );
@@ -305,6 +306,7 @@ public class CaptureTypeServiceTest
      */
     @Test
     @Disabled
+    @SuppressWarnings("unchecked")
     public void testList()
     {
         System.out.println( "list" );
@@ -326,7 +328,11 @@ public class CaptureTypeServiceTest
     {
         System.out.println( "deleteCaptureType" );
         String url_suffix = "sv";
+        CaptureType persistent = new CaptureType();
+        persistent.setUrlSuffix( url_suffix );
+        when( em.find( CaptureType.class, url_suffix ) ).thenReturn( persistent );
         captureTypeService.deleteCaptureType( url_suffix );
+        verify( em ).remove( persistent );
     }
     
     /**
