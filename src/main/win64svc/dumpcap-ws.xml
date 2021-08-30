@@ -63,7 +63,7 @@
   -->
 
   <executable>%BASE%\jdk-11.0.11+9-jre\bin\java.exe</executable>
-  <arguments>-jar dumpcap-ws-1.0.0-runner.jar</arguments>
+  <arguments>-jar ${project.artifactId}-${project.version}-runner.jar</arguments>
   <env name="QUARKUS_OIDC_AUTH_SERVER_URL" value="${auth.server-url}/auth/realms/${auth.realm}" />
   <env name="QUARKUS_OIDC_CLIENT_ID" value="${auth.backend.client-id}"/>
   <env name="QUARKUS_OIDC_CREDENTIALS_SECRET" value="${auth.backend.secret}"/>
