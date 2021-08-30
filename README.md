@@ -6,9 +6,17 @@ If you want to learn more about Quarkus, please visit its website: https://quark
 
 - The idea for the project is to use the Wireshark `dumpcap.exe` (or `tcpdump`) program to capture packets into a temporary .pcapng file,
   then retrieve the capture at an arbitrary later time.
-- There are eight commands: `startAll`, `startGoose`, `startGSE`, `startSV`, `stop`, `read`, `delete` and `list`.
-- The project can be secured using an `OpenID-connect` compatible server like `Keycloak`.
-- The start commands return a unique UUID (Universally Unique Identifier), which is then used as a path parameter for the other commands (except list).
+- The project is secured using an `OpenID-connect` compatible server like `Keycloak`.
+- There are 5 primary API commands: `start`, `stop`, `read`, `delete` and `list`.
+- The start command also has a capture type parameter that allows you to select different capture filters.
+- The capture filters are registered in the database, and can be added or removed using the filter API by a users with the `filter_admin` role.
+- Users with the `admin` role can stop, download and delete captures made by other users.
+- The start command returns a unique UUID (Universally Unique Identifier), which is then used as a path parameter for the other primary API commands (except list).
+
+## Important Changes
+
+- You'll now need to add another admin role to Keycloaks roles secton called `filter_admin`, and add that role to any user that needs to administer capture filters. I thought that it made sense to keep the role that allowed users to stop/download/delete other users captures separate from the role tha allows filter administration. Probably you'll want several people that can see other's captures, but very few people that should have the ability to add/remove capture filters, due to it's security sensitivity.
+- When you're running in quarkus:dev mode the database will automatically use the `drop-and-create` strategy on the database. That means it will delete the contents of the database on every run, and will pre-populate the database with filters for Goose, GSE, SV, and PTP. However, in production mode (when you're running as a service for instance), it only updates the database schema, it doesn't delete the data. Even updating the database schema isn't supposed to be done in production, but at this point the schema isn't mature. You're free to change this in your settings.xml to override this behaviour. However, one of the downsides of turning off the `update` strategy for production databases is that it will not be able to create the initial database automatically on deployment. One possible solution for this is to use the `update` strategy initially, but then switch it to `none`.
 
 ## Status and Future Directions
 
@@ -16,24 +24,24 @@ If you want to learn more about Quarkus, please visit its website: https://quark
 - There is now a rudimentary web-based user interface that allows you to start/stop/download/delete captures.
 - There is also now an `admin` mode for people that have been assigned an `admin` role in Keycloak. Admin users can see the captures of other people, stop them, download them and delete them.
 - Non-admin users can only start/stop/delete/download their own captures.
-- I suggest that you create a settings.xml file in your maven `$HOME/.m2` directory to store the `${auth.server.url}` property which should point to your keycloak server. See below for an example.
+- I suggest that you create a settings.xml file in your maven `$HOME/.m2` directory to store the `${auth.server-url}`, `${auth.realm}` and `${auth.backend.secret}` properties that point to your local Keycloak server and allow the backend-service (API) to authenticate to it.
 - I also suggest you create a `.env` file in the top level project directory. This holds environment settings for Quarkus when running from the local folder (does *NOT* affect production jar).
-- The program now works on both Windows and Linux.
-- The program also works inside a Docker container with some caveats. It must be run with the `--privileged` and `--net=host` flags.
+- The program now works on both Windows and Linux, and also from a Docker container hosted on Linux (with some caveats: See --net=host and --privilged)
 - The docker `--net=host` flag is a problem on Windows. At this point in time, it doesn't work at all because there's no bridging between the Docker Linux VM and the Windows physical interface.
   As a workaround, I've removed the `--net=host` and added `-p 8080:8080` flags. However, while you can connect to the interface and capture packets, you're only able to do it on the Docker private
   network - which isn't really useful.
-- I'm now using an `Alpine Linux` based `Docker` image, and use `tcpdump` rather than Wireshark's `dumpcap` program.
-- I can always switch back to Wireshark's `dumpcap` if we need it, but that would greatly increase the Docker image size.
-- It's unlikely that you'll be able to run it inside a `Kubernetes` cluster, because `Kubernetes` uses separate internal Pod networks. Most traffic is redirected into Kubernetes clusters via LoadBalancer and Ingress resources.
-- You may want to write a separate standalone client web application to furthur separate the client from the back-end service in terms of security.
-- There may also be other reasons why you'd want a different client. I know that there are quite a few `Node.JS` based frameworks out there that are very popular.
+- I'm now using an `Alpine Linux` based `Docker` image, and use `tcpdump` rather than Wireshark's `dumpcap` program. This takes *MUCH* less time to build, and produces a much smaller Docker image than the Ubuntu based image I was using before.
+- I can always switch back to Wireshark's `dumpcap` if we need it, but that would greatly increase the Docker image size. This is mostly due to the fact that dumpcap isn't packaged separately from Wireshark, and Wireshark has a lot of graphical user interface dependencies.
+- It's unlikely that you'll be able to run the Docker image inside a `Kubernetes` cluster, because `Kubernetes` uses separate internal Pod networks. Most traffic is redirected into Kubernetes clusters via LoadBalancer and Ingress resources.
+- You may want to write a separate standalone client web application to furthur separate the `frontend-client` from the `backend-service` in terms of security.
+- There's now an `add_filter.ps1` script that *MUST* be used after installation to add/remove capture filters. The add_filters.ps1 script, like all the other PowerShell scripts in the directory reads the `.env` file for environment
+  settings, so you may need to adjust some values there for them to work (in particular the ADMIN_USER_* variables and possibly the CA_CERT variable.)
 
 ## Understanding Project Settings
 
-In this Quarkus project I'm using two kinds of configuration variable overrides. First, there's the Apache Maven `pom.xml` file. It contains properties in two different places; up near the top in the properties section, and down near the bottom in the `<profiles>` section. The properties up top are used all the time, unless overridden by something in the `<properties>` section, or by another Maven file called `settings.xml` that's stored in `$HOME/.m2/`. There's also a `<resources>` section in the `pom.xml` file which controls how files in the `src/main/resources` folder are filtered. The filtering is what is used to substitute values in files such as `application.properties`, `index.html`, and `keycloak.json`. The `<profiles>` section properties can be used to override the main section properties by building maven with an extra `-P [profile_name]` flag. Profiles can also be selected automatically using an `<activations>` section. In the case of building on Linux, the `linux` profile is selected automatically because it's `<activation>` section specifies to activate the profile based on it being a `Linux` operating system. The effect of this profile is to change the startCaptureScript property to a Linux specific startCaptureScript, rather than the Windows one that's set in the main properties section.
+In this Quarkus project I'm using two kinds of configuration variable overrides. First, there's the Apache Maven `pom.xml` file. It contains properties in two different places; up near the top in the properties section, and down near the bottom in the `<profiles>` section. The properties up top are used all the time, unless overridden by something in the profiles section, or by another Maven file called `settings.xml` that's stored in `$HOME/.m2/`. There's also a `<resources>` section in the `pom.xml` file which controls how files in the `src/main/resources` folder are filtered. The filtering is what is used to substitute values in files such as `application.properties`. The `<profiles>` section properties can be used to override the main section properties by building maven with an extra `-P [profile_name]` flag. Profiles can also be activated automatically using an `<activations>` section. In the case of building on Linux, the `linux` profile is selected automatically because it's `<activation>` section specifies to activate the profile based on it being a `Linux` operating system. The effect of this profile is to change the startCaptureScript property to a Linux specific startCaptureScript, rather than the Windows one that's set in the main properties section.
 
-Now, asside from Maven filtering, there's also Quarkus/Eclipse Microprofile settings. Project properties for Quarkus can be set in it's `application.properties` file. Properties in this file are used by the various Quarkus subsystems such as database persistence, or Open-ID connect (OIDC) integration. The can also be used to directly inject values into Java Bean fields using the `@ConfigProperty` annotation. Quarkus properties also have their own override mechanisms. For one, if a property starts with `%dev.`, `%test.`, or `%prod.`, these properties are only active when Quarkus is running in dev, test or prod mode. This allows you to set a property differently for testing or development, than you would for production. This is important for databases, because typically you don't want testing to affect either your development or production databases. In fact, it's quite common to use an in-memory database that simply gets thrown away after the test.
+Now, asside from Maven filtering, there's also Quarkus/Eclipse Microprofile settings. Project properties for Quarkus can be set in it's `application.properties` file. Properties in this file are used by the various Quarkus subsystems such as database persistence, or Open-ID connect (OIDC) integration. The can also be used to directly inject values into Java Bean fields using a `@ConfigProperty` annotation. Quarkus properties also have their own override mechanisms. For one, if a property starts with `%dev.`, `%test.`, or `%prod.`, these properties are only active when Quarkus is running in dev, test or prod mode. This allows you to set a property differently for testing or development, than you would for production. This is important for databases, because typically you don't want testing to affect either your development or production databases. In fact, it's quite common to use an in-memory database that simply gets thrown away after the test.
 
 But Quarkus also has an environment variable override mechanism. If you take a property name, and convert it all to upper case, and change periods and dashes to underscore (`_`) characters, and you set this in the environment, it will override the property in the `application.properties` file. This is useful for deployment to Docker containers, Kubernetes, etc. There's also a place to put environment variable overrides in your project folder called the `.env` file.
 
@@ -43,10 +51,7 @@ Personally, I put generic, non-site-specific values in the `pom.xml` and `applic
 
 ## Database Configuration
 
-The src`/main/resources/application.properties` file contains a value called `quarkus.hibernate-orm.database.generation` which is
-set to `drop-and-create`. This is a useful development setting that drops the database on every startup. However, you'll more than
-likely want to change this to `none` instead once you have your database up and going, otherwise you'll have inconsistencies
-between what's been captured and what's listed in the database. The way I'd recommend to do this is to set `QUARKUS_HIBERNATE_ORM_DATABASE_GENERATION=none` for production, or you can use update for development. The tricky part about production is that you'll need to copy a fully provisioned database file into the docker image, unless you want to connect to an external production database like MySQL or Postgres (recommended).
+The src`/main/resources/application.properties` file contains a value called `quarkus.hibernate-orm.database.generation` which is set to `drop-and-create`. This is a useful development setting that drops the database on every startup. However, you'll more than likely want to change this to `none` instead once you have your database up and going, otherwise you'll have inconsistencies between what's been captured and what's listed in the database. The way I'd recommend to do this is to set `QUARKUS_HIBERNATE_ORM_DATABASE_GENERATION=none` for production, or you can use update for development. The tricky part about production is that you'll need to copy a fully provisioned database file into the docker image, unless you want to connect to an external production database like MySQL or Postgres (recommended).
 
 # Database Schema Upgrades
 
@@ -54,17 +59,40 @@ Sometimes a database schema upgrade may be necessary, and I haven't integrated f
 
 ## The .env File (stored in your project's top level folder)
 
-(This file configures the back-end web service, it doesn't affect the web client.)
+This file is read by Quarkus to configure the back-end web service, it doesn't affect the web client. It's also used by the PowerShell scripts in the user_scripts and admin_scripts directories.
 
 ```shell script
-# These are Quarkus environment overrides, they have nothing to do with Apache Maven.
-# They are used at runtime to override properties in application.properties.
-QUARKUS_OIDC_AUTH_SERVER_URL=https://your.keycloak.server/auth/realms/quarkus
-QUARKUS_OIDC_CLIENT_ID=backend-service
-QUARKUS_OIDC_CREDENTIALS_SECRET=your-oidc-credentials-secret
-QUARKUS_OIDC_TLS_VERIFICATION=required
-TEST_USER_NAME=alice
-TEST_USER_PASSWORD=alice
+# These directly override properties in application.properties. This gets done after
+# maven has performed it's subsitutions, so even though AUTH_SERVER_URL and QUARKUS_OIDC_AUTH_SERVER_URL
+# may seem redundant, they are in fact, separate properties. One is used for the @Inject annotations in
+# PcapApplication, and the other is used to override Quarkus' OIDC behaviour.
+
+AUTH_SERVER_URL=https://your.keycloak.server
+AUTH_REALM=your_keycloak_realm
+QUARKUS_OIDC_AUTH_SERVER_URL=https://your_keycloak_server/auth/realms/your_keycloak_realm
+QUARKUS_OIDC_CREDENTIALS_SECRET=your_keycloak_backend_service_credentials
+QUARKUS_KEYCLOAK_DEVSERVICES_REALM_NAME=your_keycloak_realm
+
+# Used for scripts - you'll likely want to change these.
+
+ADMIN_USER_NAME=alice
+ADMIN_USER_PASSWORD=alice
+API_SERVER=http://your.api.server:port
+
+# The CA cert is only needed if you're using an internal Certificate Authority's CA certificate that has no
+# trust chain to a public CA, or is otherwise unrecognized by the HttPie tool (or probably the underlying python)
+# If you're just working in development mode, and your API and Keycloak servers aren't using SSL, then this isn't
+# necessary. If you're not using an internal enterprise CA, then set both of these to nothing (leave the assignment
+# empty). In our case, we use a public CA for our Keycloak server, so it's left empty. And we use a enterprise
+# certificate for our API server, so it's normally set. However, when I'm connecting to localhost for development,
+# I also leave the API_CA_CERT as an empty value, or just comment it out.
+#
+# Beware, that this script has an effect on the environment after it runs. So if you comment out a variable, instead
+# of setting it to an empty value, the previously set value from this file will still be in effect. So either leave
+# the variables in, and set them to empty, or else start another PowerShell window.
+
+KEYCLOAK_CA_CERT=C:/full/path/to/pem/encoded/ca_certificate_for_keycloak.crt
+API_CA_CERT=C:/full/path/to/pem/encoded/ca_certificate_for_api.crt
 ```
 
 The `QUARKUS_OIDC_CREDENTIALS_SECRET` must match the `Keycloak -> Quarkus Realm -> Clients -> Backend-service -> Credentials -> Secret`. For security you should regenerate the secret. The frontend-client does not have a credentials secret because it's configured with "Access Type" set to "public". This is necessary because JavaScript based clients have no secure way to store the credentials. It's necessary to take additional security precautions for this reason. In particular, you should make sure the `Valid Redirect URIs` field is as specific as possible (so don't use `*` by itself for instance).
@@ -79,21 +107,16 @@ The `QUARKUS_OIDC_CREDENTIALS_SECRET` must match the `Keycloak -> Quarkus Realm 
 >
 
     <profiles>
+        
         <profile>
             <id>keycloak</id>
             <properties>
                 <auth.server-url>https://your.keycloak.server</auth.server-url>
-                <auth.realm>your-keycloak-realm</auth.realm>
-                
-                <!--<auth.frontend.ssl-required>external</auth.frontend.ssl-required>-->
-                <!--<auth.frontend.client-id>frontend-client</auth.frontend.client-id>-->
-                <auth.frontend.client-confidential-port>443</auth.frontend.client-confidential-port>
-                
-                <!--<auth.backend.client-id>backend-service</auth.backend.client-id>-->
-                <auth.backend.secret>your-keycloak-backend-secret</auth.backend.secret>
-                <!--<auth.backend.tls-verification>required</auth.backend.tls-verification>-->
+                <auth.realm>your_keycloak_realm</auth.realm>
+                <auth.backend.secret>your_keycloak_backend-service_credentials</auth.backend.secret>
             </properties>
         </profile>
+        
     </profiles>
 
     <activeProfiles>
@@ -109,32 +132,41 @@ The token replacements are done to help you get started quickly, and also to rem
 
 # Configuring the Web client in Keycloak
 
-You'll need to login to your Keycloak server as a user with the `admin` role and switch to the Quarkus realm. The Keycloak server
-that's run by `quarkus:dev` uses `admin` as a username, and `admin` as the password. Once you're logged in, create a new client
-called `frontend-client` using `openid-connect` as the client protocol. In the `Valid Redirect URIs` field, type `http://localhost:8080/*`,
-or whatever your web service URL is running under. This tells the Keycloak server that it's okay to redirect the user back to
-`http://localhost:8080/*` after successful authentication. This is very important for security that it match the web client URL. Also, for
-the `Web Origins` section, add a single line containing only the `+` sign. Of course later when you deploy this to production, you'll need
-to change these URL's to a public, or at least corporate facing URL.
+You'll need to login to your Keycloak server as a user with the `admin` role and switch to the Quarkus realm. The Keycloak server that's run by `quarkus:dev` uses `admin` as a username, and `admin` as the password. Once you're logged in, create a new client called `frontend-client` using `openid-connect` as the client protocol. In the `Valid Redirect URIs` field, type `http://localhost:8080/*`, or whatever your web service URL is running under. This tells the Keycloak server that it's okay to redirect the user back to `http://localhost:8080/*` after successful authentication. This is very important for security that it match the web client URL. Also, for the `Web Origins` section, add a single line containing only the `+` sign. Of course later when you deploy this to production, you'll need to change these URL's to a public, or at least corporate facing URL.
 
-There used to be a file called keycloak.json that had to be configured for the client. Now that file is generated automatically and is available
-at /api/res/configjson. It's a public URL, and is not protected, and it doesn't need to be.
+There used to be a file called keycloak.json that had to be configured for the client. Now that file is generated automatically and is available at /api/res/configjson. It's a public URL, and is not protected, and it doesn't need to be.
 
 ## Authentication and Authorization
 
-The application is now fully integrated with authorization servers supporting the `Open-ID Connect` standard (`OIDC` for short).
-If you're running docker on your development workstation, all you need to do is run `quarkus:dev`. It will run a keycloak
-server in the background, that's fully provisioned and setup for testing. Be warned, the web client doesn't work with this
-unless you manually edit the web client configuration file (`keycloak.json`), and the `index.html` file to point to the keycloak
-server. It may be easier to run keycloak from docker manually, and import the realm file below if you want to use the web client.
+The application is now fully integrated with authorization servers supporting the `Open-ID Connect` standard (`OIDC` for short). If you're running docker on your development workstation, all you need to do is run `quarkus:dev`. It will run a keycloak server in the background, that's fully provisioned and setup for testing. Be warned, the web client doesn't work with this unless you manually edit the web client configuration file (`keycloak.json`), and the `index.html` file to point to the keycloak server. It may be easier to run keycloak from docker manually, and import the realm file below if you want to use the web client.
 
 If you wish to setup a standalone keycloak server, you can import this realm as a quick-start:
 
 `https://github.com/quarkusio/quarkus-quickstarts/blob/main/security-openid-connect-quickstart/config/quarkus-realm.json`
 
-The file creates a realm with some default passwords that the application has configured in it's `application.properties` file.
-These passwords are very bad, so you might want to update them right away. There's also a client secret that should be
-regenerated.
+The file creates a realm with some default passwords that the application has configured in it's `application.properties` file. These passwords are very bad, so you might want to update them right away. There's also a client secret that should be regenerated.
+
+In a production deployment, you'll probably use the User Federation section to synchronize users from Active Directory, and also add a `group-ldap-mapper` to map AD groups to Keycloak groups. Then you'll want to assign roles to the newly imported Keycloak groups in the group's `Role Mappings` tab.
+
+Update: You'll now need to create a new role called `filter_admin` under the `quarkus` realm provided in the above realm import. That's in addition to the `admin` and `user` roles that should already be there if you used the quickstart link above to create the realm. I also suggest you rename your realm to something more appropriate like `pcap`. If you do rename your realm though, make sure that you change it in the `settings.xml` and `.env` files above. After you've created the role, you should assign it to one of the test users under the users section. This is done under the `Role Mappings` tab on the user's page.
+
+# Windows Service Deployment
+
+- Run `.\mvnw clean compile package`
+
+In a PowerShell window:
+
+```shell
+cd target\win64svc
+.\pre-install.ps1
+.\install-and-run.ps1
+```
+
+After the pre-install, the installation folder is essentially complete. You can then copy the win64svc folder to another PC before you install and run the service with the `install-and-run.ps1` script.
+
+This will get a service running on your local PC, running on `http://localhost:8080`. For production deployment, you'll need to uncomment the lines at the bottom of the `dumpcap-ws.xml` file, and provide an SSL certificate and key saved in PKCS12 format (`.pfx` or `.p12`) called `server-cert-and-key.pfx`.
+
+There's also a file called `stop-and-uninstall.ps1` which can be used to stop uninstall the service. You'll need to at least stop the service if you want to update the jar file used by the running service.
 
 ### Testing
 

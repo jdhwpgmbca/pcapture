@@ -1,0 +1,85 @@
+<!--
+  MIT License
+
+  Copyright (c) 2008-2020 Kohsuke Kawaguchi, Sun Microsystems, Inc., CloudBees,
+  Inc., Oleg Nenashev and other contributors
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+
+<!--
+ This is an example of a minimal Windows Service Wrapper configuration, which includes only mandatory options,
+ *AND* a few environment variables that I've added for the dumpcap-ws service.
+ 
+ This configuration file should be placed near the WinSW executable, the name should be the same.
+ E.g. for myapp.exe the configuration file name should be myapp.xml
+ 
+ You can find more information about the configuration options here: https://github.com/kohsuke/winsw/blob/master/doc/xmlConfigFile.md
+ Full example: https://github.com/kohsuke/winsw/blob/master/examples/sample-allOptions.xml
+-->
+
+<service>
+  
+  <!-- ID of the service. It should be unique across the Windows system. It's okay to 
+       rename this if there's a conflict with an existing service name.
+  -->
+
+  <id>PCapSvc</id>
+
+  <!-- Display name of the service -->
+
+  <name>Packet Capture Service</name>
+
+  <!-- Service description -->
+
+  <description>Run dumpcap or tcpdump program from a Windows service.</description>
+  
+  <!-- You will need to copy an OpenJDK 11 folder to this folder, and rename it to jre,
+       as well as copying the ${project.build.finalName}-runner.jar.
+       You should also copy an PKCS12 formatted file containing your SSL certificate
+       and key into this directory and rename it to the name shown below for
+       QUARKUS_HTTP_SSL_CERTIFICATE_KEY_STORE_FILE. You may also need to change the
+       QUARKUS_HTTP_SSL_CERTIFICATE_KEY_STORE_PASSWORD below to match the export password
+       used by your Network Administrator when the key was exported. It's important that
+       this file contain both the key and the certificate.
+
+       We get our OpenJDK's from https://adoptopenjdk.net
+  -->
+
+  <executable>%BASE%\jdk-11.0.11+9-jre\bin\java.exe</executable>
+  <arguments>-jar dumpcap-ws-1.0.0-runner.jar</arguments>
+  <env name="QUARKUS_OIDC_AUTH_SERVER_URL" value="${auth.server-url}/auth/realms/${auth.realm}" />
+  <env name="QUARKUS_OIDC_CLIENT_ID" value="${auth.backend.client-id}"/>
+  <env name="QUARKUS_OIDC_CREDENTIALS_SECRET" value="${auth.backend.secret}"/>
+  <env name="QUARKUS_OIDC_TLS_VERIFICATION" value="${auth.backend.tls-verification}"/>
+  <env name="START_CAPTURE_SCRIPT" value="./startCaptureScript.ps1"/>
+  <env name="QUARKUS_DATASOURCE_DB_KIND" value="h2"/>
+  <env name="QUARKUS_DATASOURCE_JDBC_URL" value="jdbc:h2:file:./h2db"/>
+
+  <!-- Uncomment these lines once you have your SSL certificate and key stored in the .p12 or .pfx file below. -->
+
+  <!--
+  <env name="QUARKUS_HTTP_PORT" value="${prod.http.port}"/>
+  <env name="QUARKUS_HTTP_SSL_PORT" value="${prod.ssl-port}"/>
+  <env name="QUARKUS_HTTP_INSECURE_REQUESTS" value="${prod.insecure-requests}"/>
+  <env name="QUARKUS_HTTP_SSL_CERTIFICATE_KEY_STORE_FILE" value="${prod.keystore-file}"/>
+  <env name="QUARKUS_HTTP_SSL_CERTIFICATE_KEY_STORE_PASSWORD" value="${prod.keystore-password}"/>
+  -->
+
+</service>

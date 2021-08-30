@@ -43,4 +43,9 @@ nb-configuration.xml
 
 .env.disabled
 
+# Exclude win64service binary artifacts and the jre.
+# These files can be copied from the target folder for the jar, an existing OpenJDK directory
+# for the jre folder, and src/main/resources for the startCaptureScript.ps1 file.
 win64service/
+
+*.crt

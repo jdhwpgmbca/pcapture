@@ -19,6 +19,7 @@ package com.rtds;
 
 import com.rtds.view.DumpcapProcessDefaultView;
 import com.rtds.jpa.DumpcapProcess;
+import com.rtds.svc.CaptureTypeService;
 import com.rtds.svc.DumpcapDbService;
 import com.rtds.svc.UserPreferenceService;
 import io.quarkus.security.identity.SecurityIdentity;
@@ -59,46 +60,18 @@ public class PacketCaptureResource
     UserPreferenceService userPreferenceService;
     
     @Inject
+    CaptureTypeService captureTypeService;
+    
+    @Inject
     SecurityIdentity identity;
     
     @POST
-    @Path("/all")
+    @Path("/{type}")
     @Produces( MediaType.TEXT_PLAIN )
-    @RolesAllowed("user")
-    public Response startGenericCapture() throws IOException, GeneralSecurityException
+    @RolesAllowed( { "user", "admin" } )
+    public Response startTypedCapture( @PathParam("type") String type ) throws IOException, GeneralSecurityException
     {
-        return startCapture( null, "All" );
-    }
-    
-    @POST
-    @Path("/goose")
-    @Produces( MediaType.TEXT_PLAIN )
-    @RolesAllowed("user")
-    public Response startGooseCapture() throws IOException, GeneralSecurityException
-    {
-        return startCapture( "ether proto 0x88B8", "Goose" );
-    }
-    
-    @POST
-    @Path("/gse")
-    @Produces( MediaType.TEXT_PLAIN )
-    @RolesAllowed("user")
-    public Response startGSECapture() throws IOException, GeneralSecurityException
-    {
-        return startCapture( "ether proto 0x88B9", "GSE" );
-    }
-    
-    @POST
-    @Path("/sv")
-    @Produces( MediaType.TEXT_PLAIN )
-    @RolesAllowed("user")
-    public Response startSvCapture() throws IOException, GeneralSecurityException
-    {
-        return startCapture( "ether proto 0x88BA", "SV" );
-    }
-    
-    public Response startCapture( String filter, String type ) throws IOException, GeneralSecurityException
-    {
+        String filter = captureTypeService.findFilter( type );
         java.nio.file.Path script_path = java.nio.file.Path.of( startCaptureScript );
         
         logger.info(  "startCaptureScript path {}", startCaptureScript );
@@ -179,7 +152,7 @@ public class PacketCaptureResource
     @PUT
     @Path("/{id}")
     @Produces( MediaType.TEXT_PLAIN )
-    @RolesAllowed("user")
+    @RolesAllowed( { "user", "admin" } )
     @NoCache
     public Response stopCapture( @PathParam("id") String id ) throws IOException, GeneralSecurityException
     {
@@ -210,7 +183,7 @@ public class PacketCaptureResource
     
     @GET
     @Produces( MediaType.APPLICATION_JSON )
-    @RolesAllowed("user")
+    @RolesAllowed( { "user", "admin" } )
     @NoCache
     public Response list()
     {
@@ -222,7 +195,7 @@ public class PacketCaptureResource
     @GET
     @Path("/{id}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @RolesAllowed("user")
+    @RolesAllowed( { "user", "admin" } )
     @NoCache
     public Response readCapture( @PathParam("id") String id ) throws IOException, InterruptedException, GeneralSecurityException
     {
@@ -247,7 +220,7 @@ public class PacketCaptureResource
     @DELETE
     @Path("/{id}")
     @Produces(MediaType.TEXT_PLAIN)
-    @RolesAllowed("user")
+    @RolesAllowed( { "user", "admin" } )
     @NoCache
     public Response deleteCapture( @PathParam("id") String id ) throws IOException, GeneralSecurityException
     {

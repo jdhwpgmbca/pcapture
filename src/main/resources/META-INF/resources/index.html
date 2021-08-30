@@ -1,11 +1,36 @@
 <html>
 <head>
-    <title>pcap-ws</title>
+    <title>PCaptureUI</title>
     <style>
+        html {
+            font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+            width: 100%;
+            color: #666666;
+            /* text-align: center; */
+        }
         table, th, td {
             padding: 5px;
         }
         tr:nth-child(even) { background-color: #f2f2f2; }
+        .popup-overlay {
+            visibility: hidden;
+            position: absolute;
+            background: #ffffff;
+            border: 3px solid #666666;
+            width: 50%;
+            height: 50%;
+            left: 25%;
+        }
+        .popup-overlay.active {
+            visibility: visible;
+            text-align: center;
+        }
+        .popup-content {
+            visibility: hidden;
+        }
+        .popup-content.active {
+            visibility: visible;
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script>
@@ -133,6 +158,28 @@
                     deleteBtn.disabled = false;
                 }
             }
+        }
+        // Load start buttons from API.
+        function generateStartButtons() {
+            axios({
+                method: 'get',
+                url: '/api/filter',
+                headers: {
+                    'Authorization': 'Bearer ' + keycloak.token
+                }
+            })
+            .then( response => {
+                var startButtonsParent = document.getElementById('startButtonsParent');
+                response.data.forEach(element => {
+                    var suffix = element.urlSuffix;
+                    var label = element.label;
+                    var btn = document.createElement('button');
+                    btn.innerHTML = label;
+                    btn.setAttribute('onclick',"startCapture('" + suffix + "')");
+                    startButtonsParent.appendChild(btn);
+                });
+            } )
+            .except( error => console.log(error) );
         }
         function toggleAllUsers() {
             axios({
@@ -276,24 +323,18 @@
 </head>
 <body>
     <span>
-        <span style="padding: 1em">
-            <button onclick="startCapture('all')">Start Generic Capture</button>
-            <button onclick="startCapture('goose')">Start Goose Capture</button>
-            <button onclick="startCapture('gse')">Start GSE Capture</button>
-            <button onclick="startCapture('sv')">Start SV Capture</button>
-        </span>
-        <span style="padding: 1em">
-            <button id="allUsersButton" hidden="true" onclick="toggleAllUsers()">Toggle All Users</button>
-            <button onclick="logout()">Logout</button>
-        </span>
         <span>
-            <label for="refreshCheckbox">Auto-refresh</label>
-            <input type="checkbox" id="refreshCheckbox" onclick="refreshClick()" checked>
-        </span>
-        <span style="padding: 1em">
+            <span style="padding: 1em;" id="startButtonsParent"></span>
+            <span style="padding: 1em;">
+                <button id="allUsersButton" hidden="true" onclick="toggleAllUsers()">Toggle All Users</button>
+                <button onclick="logout()">Logout</button>
+            </span>
+            <span>
+                <label for="refreshCheckbox">Auto-refresh</label>
+                <input type="checkbox" id="refreshCheckbox" onclick="refreshClick()" checked>
+            </span>
             <span id="username" style="padding: 1em"></span>
         </span>
-    </span>
     <table id="mytable" style="padding: 1em"></table>
     <div style="padding: 1em">
         <button id="refreshButton" hidden="true" onclick="listCaptures()">Refresh</button>

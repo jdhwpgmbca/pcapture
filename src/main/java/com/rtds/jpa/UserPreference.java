@@ -10,12 +10,14 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.Table;
 
 /**
  *
  * @author jdh
  */
 @Entity
+@Table(name="USER_PREF")
 public class UserPreference implements Serializable
 {
     @Id

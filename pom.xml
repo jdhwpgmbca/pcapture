@@ -6,6 +6,7 @@
   <artifactId>dumpcap-ws</artifactId>
   <version>1.0.0</version>
   <properties>
+      
     <compiler-plugin.version>3.8.1</compiler-plugin.version>
     <maven.compiler.parameters>true</maven.compiler.parameters>
     <maven.compiler.source>11</maven.compiler.source>
@@ -22,16 +23,30 @@
     
     <auth.frontend.ssl-required>external</auth.frontend.ssl-required>
     <auth.frontend.client-id>frontend-client</auth.frontend.client-id>
-    <auth.frontend.client-confidential-port>8443</auth.frontend.client-confidential-port>
+    <auth.frontend.client-confidential-port>443</auth.frontend.client-confidential-port>
     
     <auth.backend.client-id>backend-service</auth.backend.client-id>
     <auth.backend.secret>secret</auth.backend.secret>
     <auth.backend.tls-verification>required</auth.backend.tls-verification>
     
-    <datasource.jdbc.url>jdbc:h2:file:${project.basedir}/h2db</datasource.jdbc.url>
-    <datasource.jdbc.test.url>jdbc:h2:mem:test</datasource.jdbc.test.url>
+    <!-- These next properties are only used when Quarkus is used in prod mode. -->
+    
+    <prod.keystore-file>./server-cert-and-key.pfx</prod.keystore-file>
+    <prod.keystore-password>changeme</prod.keystore-password>
+    <prod.ssl-port>443</prod.ssl-port>
+    <prod.http.port>80</prod.http.port>
+    <prod.insecure-requests>redirect</prod.insecure-requests>
+    <prod.ssl-native>true</prod.ssl-native>
+    
+    <!-- The JDBC URLs: There's also an override in the container profile for the
+        different filesystem layout that's used. -->
+    
+    <dev.jdbc.url>jdbc:h2:file:${basedir}/h2db</dev.jdbc.url>
+    <test.jdbc.url>jdbc:h2:mem:test</test.jdbc.url>
+    <prod.jdbc.url>jdbc:h2:file:./h2db</prod.jdbc.url>
+    
     <start-capture-script>${project.basedir}/src/main/resources/startCaptureScript.ps1</start-capture-script>
-    <git.hash></git.hash> <!-- This would normally be overridden by your Continuous Integration System. We use GitLab-CI. -->
+    
   </properties>
   <dependencyManagement>
     <dependencies>
@@ -79,6 +94,10 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+        <groupId>io.quarkus</groupId>
+        <artifactId>quarkus-junit5-mockito</artifactId>
+    </dependency>
+    <dependency>
       <groupId>io.rest-assured</groupId>
       <artifactId>rest-assured</artifactId>
       <scope>test</scope>
@@ -119,6 +138,15 @@
           <include>**/*.html</include>
         </includes>
       </resource>
+      <resource>
+          <filtering>true</filtering>
+          <directory>src/main/win64svc</directory>
+          <targetPath>../win64svc</targetPath>
+          <includes>
+              <include>**/*.xml</include>
+              <include>**/*.ps1</include>
+          </includes>
+      </resource>
     </resources>
     <testResources>
       <testResource>
@@ -147,6 +175,40 @@
       </testResource>
     </testResources>
     <plugins>
+      <plugin>
+          <groupId>com.googlecode.maven-download-plugin</groupId>
+          <artifactId>download-maven-plugin</artifactId>
+          <version>1.6.6</version>
+          <executions>
+              <execution>
+                  <id>download_wrapper</id>
+                  <phase>process-resources</phase>
+                  <goals>
+                      <goal>wget</goal>
+                  </goals>
+                  <configuration>
+                    <uri>https://github.com/winsw/winsw/releases/download/v2.11.0/WinSW.NET4.exe</uri>
+                    <unpack>false</unpack>
+                    <outputDirectory>${project.build.directory}/win64svc</outputDirectory>
+                    <outputFileName>dumpcap-ws.exe</outputFileName>
+                    <sha256>abe54e1dba743fdf0403e33c1f9e6807800a2f9acd3d3101002cf59f3f2dea62</sha256>
+                  </configuration>
+              </execution>
+              <execution>
+                  <id>download-openjdk</id>
+                  <phase>process-resources</phase>
+                  <goals>
+                      <goal>wget</goal>
+                  </goals>
+                  <configuration>
+                    <url>https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.11%2B9/OpenJDK11U-jre_x64_windows_hotspot_11.0.11_9.zip</url>
+                    <unpack>true</unpack>
+                    <outputDirectory>${project.build.directory}/win64svc</outputDirectory>
+                    <sha256>a7377fb0807fa619de49eec02ad7e2110c257649341f5ccffbaafa43cc8cbcc8</sha256>
+                  </configuration>
+              </execution>
+          </executions>
+      </plugin>
       <plugin>
         <groupId>${quarkus.platform.group-id}</groupId>
         <artifactId>quarkus-maven-plugin</artifactId>
@@ -196,7 +258,7 @@
     <profile>
       <id>container</id>
       <properties>
-        <datasource.jdbc.url>jdbc:h2:file:/deployments/h2db</datasource.jdbc.url>
+        <prod.jdbc.url>jdbc:h2:file:/deployments/h2db</prod.jdbc.url>
         <start-capture-script>/deployments/startCaptureScript.sh</start-capture-script>
         <!-- Tests are skipped because the startCaptureScript path above isn't accessible outside the container. -->
         <skipTests>true</skipTests>

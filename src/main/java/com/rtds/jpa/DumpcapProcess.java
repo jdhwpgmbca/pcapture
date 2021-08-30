@@ -27,6 +27,7 @@ import org.hibernate.annotations.GenericGenerator;
  * @author jdh
  */
 @Entity
+@Table(name="DUMPCAP_PROCESS")
 public class DumpcapProcess implements Serializable
 {
 
