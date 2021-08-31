@@ -54,9 +54,15 @@
     <!-- The JDBC URLs: There's also an override in the container profile for the
         different filesystem layout that's used. -->
     
-    <dev.jdbc.url>jdbc:h2:file:${basedir}/h2db</dev.jdbc.url>
+    <data.directory>${basedir}/data</data.directory>
+
+    <jdbc.kind>h2</jdbc.kind>    
+    <jdbc.username>dumcap-user</jdbc.username>
+    <jdbc.password>changeme</jdbc.password>
+
+    <dev.jdbc.url>jdbc:h2:file:${data.directory}/h2db</dev.jdbc.url>
     <test.jdbc.url>jdbc:h2:mem:test</test.jdbc.url>
-    <prod.jdbc.url>jdbc:h2:file:./h2db</prod.jdbc.url>
+    <prod.jdbc.url>jdbc:h2:file:${data.directory}/h2db</prod.jdbc.url>
     
     <start-capture-script>${project.basedir}/src/main/resources/startCaptureScript.ps1</start-capture-script>
     
