@@ -2,14 +2,10 @@ package com.rtds.svc;
 
 import com.rtds.jpa.CaptureType;
 import io.quarkus.test.junit.QuarkusTest;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
-import javax.persistence.RollbackException;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import org.junit.jupiter.api.AfterEach;
@@ -51,7 +47,25 @@ public class CaptureTypeServiceIntegrationTest
     @Test
     public void testCreateOrUpdateCaptureType_CaptureTypeNull()
     {
-        CaptureType value = null;
+        try
+        {
+            captureTypeService.createOrUpdateCaptureType( null );
+            fail( "Expected ConstraintViolationException not thrown." );
+        }
+        catch( ConstraintViolationException ex )
+        {
+            printConstraintViolationException( ex );
+        }
+    }
+    
+    @Test
+    public void testCreateOrUpdateCaptureType_urlSuffixNull()
+    {
+        CaptureType value = new CaptureType();
+        
+        value.setUrlSuffix( null );
+        value.setLabel( "testlabel" );
+        value.setCaptureFilter( "testfilter" );
         
         try
         {
@@ -74,7 +88,7 @@ public class CaptureTypeServiceIntegrationTest
         
         value.setUrlSuffix( "test1234567890" );
         value.setLabel( "testlabel" );
-        value.setCaptureFilter( null );
+        value.setCaptureFilter( "testfilter" );
         
         try
         {
@@ -88,13 +102,13 @@ public class CaptureTypeServiceIntegrationTest
     }
 
     @Test
-    public void testCreateOrUpdateCaptureType_urlSuffixTooShort()
+    public void testCreateOrUpdateCaptureType_urlSuffixBlank()
     {
         CaptureType value = new CaptureType();
         
         value.setUrlSuffix( "" );
         value.setLabel( "testlabel" );
-        value.setCaptureFilter( null );
+        value.setCaptureFilter( "testfilter" );
         
         try
         {
@@ -106,7 +120,7 @@ public class CaptureTypeServiceIntegrationTest
             printConstraintViolationException( ex );
         }
     }
-
+    
     @Test
     public void testCreateOrUpdateCaptureType_labelTooLong()
     {
@@ -114,7 +128,7 @@ public class CaptureTypeServiceIntegrationTest
         
         value.setUrlSuffix( "test" );
         value.setLabel( "123456789012345678901234567890123456789012345678901" );
-        value.setCaptureFilter( null );
+        value.setCaptureFilter( "testfilter" );
         
         try
         {
@@ -134,7 +148,7 @@ public class CaptureTypeServiceIntegrationTest
         
         value.setUrlSuffix( "test" );
         value.setLabel( "" );
-        value.setCaptureFilter( null );
+        value.setCaptureFilter( "testfilter" );
         
         try
         {
@@ -154,11 +168,39 @@ public class CaptureTypeServiceIntegrationTest
         
         value.setUrlSuffix( "test" );
         value.setLabel( null );
-        value.setCaptureFilter( null );
+        value.setCaptureFilter( "testfilter" );
         
         try
         {
             captureTypeService.createOrUpdateCaptureType( value );
+            fail( "Expected ConstraintViolationException not thrown." );
+        }
+        catch( ConstraintViolationException ex )
+        {
+            printConstraintViolationException( ex );
+        }
+    }
+    
+    @Test
+    public void testFindFilter_null_urlSuffix()
+    {
+        try
+        {
+            captureTypeService.findFilter( null );
+            fail( "Expected ConstraintViolationException not thrown." );
+        }
+        catch( ConstraintViolationException ex )
+        {
+            printConstraintViolationException( ex );
+        }
+    }
+    
+    @Test
+    public void testDeleteCaptureType_with_null_urlsuffix()
+    {
+        try
+        {
+            captureTypeService.deleteCaptureType( null );
             fail( "Expected ConstraintViolationException not thrown." );
         }
         catch( ConstraintViolationException ex )
