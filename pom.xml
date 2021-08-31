@@ -185,7 +185,7 @@
           <version>1.6.6</version>
           <executions>
               <execution>
-                  <id>download_wrapper</id>
+                  <id>download-wrapper</id>
                   <phase>process-resources</phase>
                   <goals>
                       <goal>wget</goal>
