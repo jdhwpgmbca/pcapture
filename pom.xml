@@ -3,9 +3,9 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.rtds</groupId>
-  <artifactId>dumpcap-ws</artifactId>
+  <artifactId>pcapture</artifactId>
   <version>3.13.0</version>
-  <description>
+  <description> 
       Packet capture frontend for packet capture command-line tools such as
       tcpdump and dumpcap.
   </description>
