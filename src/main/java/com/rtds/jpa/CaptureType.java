@@ -10,6 +10,9 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 /**
  *
@@ -20,13 +23,18 @@ import javax.persistence.Table;
 public class CaptureType implements Serializable
 {
     @Id
-    @Column(name = "URL_SUFFIX")
+    @Column(name = "URL_SUFFIX", length = 10)
+    @NotBlank
+    @Size( min = 1, max = 10 )
     private String urlSuffix;
     
-    @Column(name = "LABEL")
+    @Column(name = "LABEL", length = 50)
+    @NotBlank
+    @Size( min = 1, max = 50 )
     private String label;
     
-    @Column(name = "CAPTURE_FILTER")
+    @Column(name = "CAPTURE_FILTER", length = 255)
+    @Size( max = 255 )
     private String captureFilter;
 
     public String getLabel()

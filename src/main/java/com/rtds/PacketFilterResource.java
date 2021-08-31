@@ -5,13 +5,15 @@
  */
 package com.rtds;
 
-import com.rtds.event.FilterEvent;
 import com.rtds.jpa.CaptureType;
 import com.rtds.svc.CaptureTypeService;
 import java.util.List;
 import javax.annotation.security.RolesAllowed;
-import javax.enterprise.event.Event;
 import javax.inject.Inject;
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import javax.ws.rs.*;
 
 /**
@@ -22,36 +24,21 @@ import javax.ws.rs.*;
 public class PacketFilterResource
 {
     @Inject
-    Event<FilterEvent> filterEvent;
-
-    @Inject
     CaptureTypeService captureTypeService;
 
     @POST
     @RolesAllowed( "filter_admin" )
-    public void addFilter( CaptureType type )
+    public void addFilter( @NotNull @Valid CaptureType type )
     {
-        if( type.getUrlSuffix().length() > 10 )
-        {
-            throw new IllegalArgumentException( "url_suffix length must be 10 characters or less." );
-        }
-        
         captureTypeService.createOrUpdateCaptureType( type );
-        filterEvent.fire( new FilterEvent( "Filter Added" ) );
     }
 
     @DELETE
     @Path( "/{url_suffix}" )
     @RolesAllowed( "filter_admin" )
-    public void deleteFilter( @PathParam( "url_suffix" ) String url_suffix )
+    public void deleteFilter( @NotBlank @Size(min=1,max=10) @PathParam("url_suffix") String url_suffix )
     {
-        if( url_suffix.length() > 10 )
-        {
-            throw new IllegalArgumentException( "url_suffix length must be 10 characters or less." );
-        }
-        
         captureTypeService.deleteCaptureType( url_suffix );
-        filterEvent.fire( new FilterEvent( "Filter Removed" ) );
     }
 
     @GET

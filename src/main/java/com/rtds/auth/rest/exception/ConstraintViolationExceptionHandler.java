@@ -15,23 +15,39 @@
  *   DAMAGE.
  */
 
-package com.rtds.event;
+package com.rtds.auth.rest.exception;
 
-/**
- *
- * @author jdh
- */
-public class ApplicationEvent
+import java.util.List;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.ext.ExceptionMapper;
+import javax.ws.rs.ext.Provider;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+@Provider
+public class ConstraintViolationExceptionHandler implements ExceptionMapper<ConstraintViolationException>
 {
-    private String message;
-    
-    public ApplicationEvent( String message )
+
+    final Logger logger = LoggerFactory.getLogger( getClass() );
+
+    @Override
+    public Response toResponse( ConstraintViolationException exception )
     {
-        this.message = message;
+        Set<ConstraintViolation<?>> violations = exception.getConstraintViolations();
+        
+        Function<ConstraintViolation<?>,String> mapper = violation ->
+                String.format( "%s: %s", violation.getPropertyPath(), violation.getMessage() );
+        
+        List<String> messages = violations.stream().map( mapper ).collect( Collectors.toList() );
+        
+        return Response.status( Status.BAD_REQUEST ).entity( messages ).build();
     }
-    
-    public String getMesage()
-    {
-        return message;
-    }
+
 }

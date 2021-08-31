@@ -166,5 +166,157 @@ public class PacketFilterResourceTest
                 .then()
                 .statusCode( 200 ); // OK
     }
+    
+    // The rest of the tests are testing parameter validation
+    
+    @Test
+    @Order( 10 )
+    @TestSecurity( user = "alice", roles = "filter_admin" )
+    public void testAddFilter_urlSuffixBlank()
+    {
+        given()
+                .contentType( ContentType.JSON )
+                .and()
+                .body( "{ \"urlSuffix\": \"\", \"label\": \"testlabel\", \"captureFilter\": \"testCaptureFilter\" }" )
+                .when().post( "/api/filter" )
+                .then()
+                .statusCode( 400 ); // BAD REQUEST
+    }
+
+    @Test
+    @Order( 10 )
+    @TestSecurity( user = "alice", roles = "filter_admin" )
+    public void testAddFilter_urlSuffixNull()
+    {
+        given()
+                .contentType( ContentType.JSON )
+                .and()
+                .body( "{ \"urlSuffix\": null, \"label\": \"testlabel\", \"captureFilter\": \"testCaptureFilter\" }" )
+                .when().post( "/api/filter" )
+                .then()
+                .statusCode( 400 ); // BAD REQUEST
+    }
+
+    @Test
+    @Order( 10 )
+    @TestSecurity( user = "alice", roles = "filter_admin" )
+    public void testAddFilter_urlSuffixTooLong()
+    {
+        given()
+                .contentType( ContentType.JSON )
+                .and()
+                .body( "{ \"urlSuffix\": \"testsuffix1\", \"label\": \"testlabel\", \"captureFilter\": \"testCaptureFilter\" }" )
+                .when().post( "/api/filter" )
+                .then()
+                .statusCode( 400 ); // BAD REQUEST
+    }
+
+    @Test
+    @Order( 10 )
+    @TestSecurity( user = "alice", roles = "filter_admin" )
+    public void testAddFilter_labelBlank()
+    {
+        given()
+                .contentType( ContentType.JSON )
+                .and()
+                .body( "{ \"urlSuffix\": \"testsuffix\", \"label\": \"\", \"captureFilter\": \"testCaptureFilter\" }" )
+                .when().post( "/api/filter" )
+                .then()
+                .statusCode( 400 ); // BAD REQUEST
+    }
+
+    @Test
+    @Order( 10 )
+    @TestSecurity( user = "alice", roles = "filter_admin" )
+    public void testAddFilter_labelNull()
+    {
+        given()
+                .contentType( ContentType.JSON )
+                .and()
+                .body( "{ \"urlSuffix\": \"testsuffix\", \"label\": null, \"captureFilter\": \"testCaptureFilter\" }" )
+                .when().post( "/api/filter" )
+                .then()
+                .statusCode( 400 ); // BAD REQUEST
+    }
+
+    @Test
+    @Order( 10 )
+    @TestSecurity( user = "alice", roles = "filter_admin" )
+    public void testAddFilter_labelTooLong()
+    {
+        given()
+                .contentType( ContentType.JSON )
+                .and()
+                .body( "{ \"urlSuffix\": \"testsuffix\", \"label\": \"testlabel012345678901234567890123456789012345678901\", \"captureFilter\": \"testCaptureFilter\" }" )
+                .when().post( "/api/filter" )
+                .then()
+                .statusCode( 400 ); // BAD REQUEST
+    }
+
+    @Test
+    @Order( 10 )
+    @TestSecurity( user = "alice", roles = "filter_admin" )
+    public void testAddFilter_captureFilterBlank()
+    {
+        given()
+                .contentType( ContentType.JSON )
+                .and()
+                .body( "{ \"urlSuffix\": \"testsuffix\", \"label\": \"testlabel\", \"captureFilter\": \"\" }" )
+                .when().post( "/api/filter" )
+                .then()
+                .statusCode( 204 ); // NO CONTENT
+    }
+
+    @Test
+    @Order( 10 )
+    @TestSecurity( user = "alice", roles = "filter_admin" )
+    public void testAddFilter_captureFilterNull()
+    {
+        given()
+                .contentType( ContentType.JSON )
+                .and()
+                .body( "{ \"urlSuffix\": \"testsuffix\", \"label\": \"testlabel\", \"captureFilter\": null }" )
+                .when().post( "/api/filter" )
+                .then()
+                .statusCode( 204 ); // NO CONTENT
+    }
+
+    @Test
+    @Order( 10 )
+    @TestSecurity( user = "alice", roles = "filter_admin" )
+    public void testAddFilter_captureFilterTooLong()
+    {
+        given()
+                .contentType( ContentType.JSON )
+                .and()
+                .body( "{ \"urlSuffix\": \"testsuffix\", \"label\": \"testlabel\", \"captureFilter\": \"test5678901234567890123456789012345678901234567890test5678901234567890123456789012345678901234567890test5678901234567890123456789012345678901234567890test5678901234567890123456789012345678901234567890test5678901234567890123456789012345678901234567890123451\" }" )
+                .when().post( "/api/filter" )
+                .then()
+                .statusCode( 400 ); // BAD REQUEST
+    }
+
+    @Test
+    @Order( 10 )
+    @TestSecurity( user = "alice", roles = "filter_admin" )
+    public void testDeleteFilterAsFilterAdmin_urlSuffixBlank()
+    {
+        given()
+                .pathParam( "url_suffix", "" )
+                .when().delete( "/api/filter/{url_suffix}" )
+                .then()
+                .statusCode( 405 ); // METHOD NOT ALLOWED (It's blocked by RESTEasy before it gets to validators.)
+    }
+
+    @Test
+    @Order( 10 )
+    @TestSecurity( user = "alice", roles = "filter_admin" )
+    public void testDeleteFilterAsFilterAdmin_urlSuffixTooLong()
+    {
+        given()
+                .pathParam( "url_suffix", "testsuffix1" )
+                .when().delete( "/api/filter/{url_suffix}" )
+                .then()
+                .statusCode( 400 ); // BAD REQUEST
+    }
 
 }

@@ -17,7 +17,6 @@
 
 package com.rtds;
 
-import com.rtds.event.FilterEvent;
 import com.rtds.view.DumpcapProcessDefaultView;
 import com.rtds.jpa.DumpcapProcess;
 import com.rtds.svc.CaptureTypeService;
@@ -35,10 +34,10 @@ import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import javax.annotation.PostConstruct;
 import javax.annotation.security.RolesAllowed;
-import javax.enterprise.event.Observes;
 import javax.inject.Inject;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -68,30 +67,16 @@ public class PacketCaptureResource
     @Inject
     SecurityIdentity identity;
     
-    int maxSuffixLength = 0;
-    
-    @PostConstruct
-    void postConstruct()
-    {
-        updateMaxSuffixLengthFromDatabase();
-    }
-    
-    void observeFilterEvent( @Observes FilterEvent event )
-    {
-        updateMaxSuffixLengthFromDatabase();
-    }
-    
     @POST
     @Path("/{type}")
     @Produces( MediaType.TEXT_PLAIN )
     @RolesAllowed( { "user", "admin" } )
-    public Response startTypedCapture( @PathParam("type") String url_suffix ) throws IOException, GeneralSecurityException
+    public Response startTypedCapture(
+            @NotBlank
+            @Size( min=1, max=10 )
+            @PathParam("type")
+            String url_suffix ) throws IOException, GeneralSecurityException
     {
-        if( url_suffix.length() > maxSuffixLength )
-        {
-            throw new IllegalArgumentException( "Capture type is invalid." );
-        }
-        
         String filter = captureTypeService.findFilter( url_suffix );
         java.nio.file.Path script_path = java.nio.file.Path.of( startCaptureScript );
         
@@ -175,14 +160,13 @@ public class PacketCaptureResource
     @Produces( MediaType.TEXT_PLAIN )
     @RolesAllowed( { "user", "admin" } )
     @NoCache
-    public Response stopCapture( @PathParam("id") String id ) throws IOException, GeneralSecurityException
+    public Response stopCapture(
+            @NotBlank
+            @Size( min=36, max=36 )
+            @PathParam("id")
+            String id ) throws IOException, GeneralSecurityException
     {
-        // UUID values are expected to be 36 characters long.
-        
-        if( id.length() != 36 )
-        {
-            return Response.status( Response.Status.BAD_REQUEST ).build();
-        }
+        // UUID values are expected to be exactly 36 characters long.
         
         DumpcapProcess proc = dumpcapDbService.find( UUID.fromString( id ), getPrincipalName() );
         
@@ -220,9 +204,12 @@ public class PacketCaptureResource
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @RolesAllowed( { "user", "admin" } )
     @NoCache
-    public Response readCapture( @PathParam("id") String id ) throws IOException, InterruptedException, GeneralSecurityException
+    public Response readCapture(
+            @NotBlank
+            @Size( min=36, max=36 )
+            @PathParam("id") String id ) throws IOException, InterruptedException, GeneralSecurityException
     {
-        // UUID values are expected to be 36 characters long.
+        // UUID values are expected to be exactly 36 characters long.
         
         if( id.length() != 36 )
         {
@@ -247,9 +234,12 @@ public class PacketCaptureResource
     @Produces(MediaType.TEXT_PLAIN)
     @RolesAllowed( { "user", "admin" } )
     @NoCache
-    public Response deleteCapture( @PathParam("id") String id ) throws IOException, GeneralSecurityException
+    public Response deleteCapture(
+            @NotBlank
+            @Size( min=36, max=36 )
+            @PathParam("id") String id ) throws IOException, GeneralSecurityException
     {
-        // UUID values are expected to be 36 characters long.
+        // UUID values are expected to be exactly 36 characters long.
         
         if( id.length() != 36 )
         {
@@ -294,6 +284,9 @@ public class PacketCaptureResource
         Optional<Boolean> admin = sidentity.map( id -> id.hasRole( "admin" ) );
         Optional<String> principal_name = sidentity.map( sid -> sid.getPrincipal() ).map( p -> p.getName() );
         
+        // If the this is an admin user and the all_users preference is true, then
+        // return an Optional.empty() instead of the principal_name.
+        
         if( allUsers( principal_name ) && admin.isPresent() && admin.get() == true )
         {
             return Optional.empty();
@@ -312,20 +305,4 @@ public class PacketCaptureResource
         return false;
     }
 
-    private void updateMaxSuffixLengthFromDatabase()
-    {
-        Optional<Integer> max = captureTypeService.list().stream().map( ct -> ct.getUrlSuffix().length() ).max( Integer::compareTo );
-        
-        if( max.isPresent() )
-        {
-            maxSuffixLength = max.get();
-        }
-        else
-        {
-            maxSuffixLength = 0;
-        }
-
-        logger.info( "The longest URL suffix that's allowed is {}", maxSuffixLength );
-    }
-    
 }

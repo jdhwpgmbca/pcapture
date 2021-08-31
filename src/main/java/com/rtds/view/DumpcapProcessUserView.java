@@ -6,6 +6,8 @@
 package com.rtds.view;
 
 import com.rtds.jpa.DumpcapProcess;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 
 /**
  *
@@ -15,7 +17,7 @@ public class DumpcapProcessUserView extends DumpcapProcessDefaultView
 {
     private String uid;
     
-    public DumpcapProcessUserView( DumpcapProcess proc )
+    public DumpcapProcessUserView( @NotNull @Valid DumpcapProcess proc )
     {
         super( proc );
         

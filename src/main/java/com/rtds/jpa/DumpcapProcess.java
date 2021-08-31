@@ -20,6 +20,9 @@ package com.rtds.jpa;
 import java.io.Serializable;
 import java.util.UUID;
 import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import org.hibernate.annotations.GenericGenerator;
 
 /**
@@ -40,10 +43,27 @@ public class DumpcapProcess implements Serializable
     @Column( name = "id", updatable = false, nullable = false )
     private UUID id;
 
+    @NotNull
     private Long pid;
+    
+    @Column( length = 10 )
+    @NotBlank
+    @Size( min = 1, max = 10)
     private String type;
+    
+    @Column( length = 1024 )
+    @NotBlank
+    @Size( min = 1, max = 1024 )
     private String pathName;
+
+    @Column( length = 50 )
+    @NotBlank
+    @Size( min = 1, max = 50)
     private String uid;
+    
+    @Column( length = 255 )
+    @NotBlank
+    @Size( min = 1, max = 255)
     private String status;
 
     public UUID getId()

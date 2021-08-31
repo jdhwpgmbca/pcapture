@@ -17,11 +17,8 @@
 
 package com.rtds.auth.rest.exception;
 
-import com.rtds.event.ApplicationEvent;
 import java.io.IOException;
 
-import javax.enterprise.event.Event;
-import javax.inject.Inject;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.ext.ExceptionMapper;
@@ -36,16 +33,9 @@ public class IOExceptionHandler implements ExceptionMapper<IOException>
 
     final Logger logger = LoggerFactory.getLogger( getClass() );
 
-    @Inject
-    Event<ApplicationEvent> applicationEvent;
-
     @Override
     public Response toResponse( IOException exception )
     {
-        ApplicationEvent event = new ApplicationEvent( exception.getMessage() );
-
-        applicationEvent.fire( event );
-
         return Response.status( Status.INTERNAL_SERVER_ERROR ).entity( exception.getMessage() ).build();
     }
 

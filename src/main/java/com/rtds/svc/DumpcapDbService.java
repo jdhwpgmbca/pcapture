@@ -17,6 +17,9 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 /**
  *
@@ -29,7 +32,11 @@ public class DumpcapDbService
     @Inject
     EntityManager em;
     
-    public UUID createDumpcapProcess( Long pid, String path_name, String type, Optional<String> uid )
+    public UUID createDumpcapProcess(
+            @NotNull Long pid,
+            @NotBlank @Size( min=1, max=1024 ) String path_name,
+            @NotBlank @Size( min=1, max=10 ) String type,
+            @NotNull Optional<String> uid )
     {
         DumpcapProcess proc = new DumpcapProcess();
         
@@ -50,7 +57,9 @@ public class DumpcapDbService
         return proc.getId();
     }
     
-    public void stopDumpcapProcess( UUID id, Optional<String> uid )
+    public void stopDumpcapProcess(
+            @NotNull UUID id,
+            @NotNull Optional<String> uid )
     {
         DumpcapProcess proc = em.find( DumpcapProcess.class, id );
         
@@ -64,7 +73,9 @@ public class DumpcapDbService
         }
     }
     
-    public void deleteDumpcapProcess( UUID id, Optional<String> uid )
+    public void deleteDumpcapProcess(
+            @NotNull UUID id,
+            @NotNull Optional<String> uid )
     {
         DumpcapProcess proc = em.find( DumpcapProcess.class, id );
         
@@ -78,7 +89,9 @@ public class DumpcapDbService
         }
     }
     
-    public DumpcapProcess find( UUID id, Optional<String> uid )
+    public DumpcapProcess find(
+            @NotNull UUID id,
+            @NotNull Optional<String> uid )
     {
         DumpcapProcess proc = em.find( DumpcapProcess.class, id );
         
@@ -94,7 +107,8 @@ public class DumpcapDbService
         return null;
     }
     
-    public List<DumpcapProcessDefaultView> list( Optional<String> uid )
+    public List<DumpcapProcessDefaultView> list(
+            @NotNull Optional<String> uid )
     {
         if( uid.isPresent() )
         {

@@ -11,6 +11,7 @@ import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.transaction.Transactional;
+import javax.validation.constraints.NotBlank;
 
 /**
  *
@@ -24,7 +25,7 @@ public class UserPreferenceService
     @Inject
     EntityManager em;
 
-    public UserPreference getUserPreference( String username, String pref_name )
+    public UserPreference getUserPreference( @NotBlank String username, @NotBlank String pref_name )
     {
         try
         {
@@ -39,26 +40,26 @@ public class UserPreferenceService
         }
     }
 
-    public String getUserPreferenceValue( String username, String pref_name, String default_value )
+    public String getUserPreferenceValue( @NotBlank String username, @NotBlank String pref_name, @NotBlank String default_value )
     {
         UserPreference pref = getUserPreference( username, pref_name );
         
         return pref != null ? pref.getPrefValue() : default_value;
     }
     
-    public boolean getBooleanUserPreferenceValue( String username, String pref_name, boolean default_value )
+    public boolean getBooleanUserPreferenceValue( @NotBlank String username, @NotBlank String pref_name, boolean default_value )
     {
         String string_value  = getUserPreferenceValue( username, pref_name, Boolean.toString( default_value ) );
         
         return Boolean.valueOf( string_value );
     }
     
-    public void setBooleanPreferenceValue( String username, String pref_name, boolean pref_value )
+    public void setBooleanPreferenceValue( @NotBlank String username, @NotBlank String pref_name, boolean pref_value )
     {
         setPreferenceValue( username, pref_name, Boolean.toString( pref_value ) );
     }
 
-    public void setPreferenceValue( String username, String pref_name, String pref_value )
+    public void setPreferenceValue( @NotBlank String username, @NotBlank String pref_name, @NotBlank String pref_value )
     {
         UserPreference pref = getUserPreference( username, pref_name );
 

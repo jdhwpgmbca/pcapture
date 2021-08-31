@@ -59,12 +59,13 @@ public class CaptureTypeServiceTest
     @Test
     public void testCreateOrUpdateCaptureType_notFound()
     {
-        System.out.println( "createOrUpdateCaptureType" );
         CaptureType value = new CaptureType();
         
         value.setUrlSuffix( "testsuffix" );
         value.setLabel( "testlabel" );
         value.setCaptureFilter( "testfilter" );
+        
+        when( em.find( CaptureType.class, "testsuffix" ) ).thenReturn( null );
         
         captureTypeService.createOrUpdateCaptureType( value );
         
@@ -78,7 +79,6 @@ public class CaptureTypeServiceTest
     @Test
     public void testCreateOrUpdateCaptureType_found()
     {
-        System.out.println( "createOrUpdateCaptureType" );
         CaptureType value = new CaptureType();
         
         value.setUrlSuffix( "testsuffix" );
@@ -103,7 +103,6 @@ public class CaptureTypeServiceTest
     @Test
     public void testCreateOrUpdateCaptureType_null()
     {
-        System.out.println( "createOrUpdateCaptureType" );
         CaptureType value = null;
         
         try
@@ -125,7 +124,6 @@ public class CaptureTypeServiceTest
     @Test
     public void testCreateOrUpdateCaptureType_label_null()
     {
-        System.out.println( "createOrUpdateCaptureType" );
         CaptureType value = new CaptureType();
         
         value.setUrlSuffix( "testsuffix" );
@@ -151,7 +149,6 @@ public class CaptureTypeServiceTest
     @Test
     public void testCreateOrUpdateCaptureType_urlsuffix_null()
     {
-        System.out.println( "createOrUpdateCaptureType" );
         CaptureType value = new CaptureType();
         
         value.setUrlSuffix( null );
@@ -177,7 +174,6 @@ public class CaptureTypeServiceTest
     @Test
     public void testCreateOrUpdateCaptureType_filter_null_unfound()
     {
-        System.out.println( "createOrUpdateCaptureType" );
         CaptureType value = new CaptureType();
         
         value.setUrlSuffix( "testurlsuffix" );
@@ -212,14 +208,13 @@ public class CaptureTypeServiceTest
         verify( persistent ).setLabel( "testlabel" );
         verify( persistent ).setCaptureFilter( null );
     }
-
+    
     /**
      * Test of findFilter method, of class CaptureTypeService.
      */
     @Test
     public void testFindFilter_found()
     {
-        System.out.println( "findFilter" );
         String url_suffix = "goose";
         CaptureType value = new CaptureType();
         value.setCaptureFilter( "testfilter" );
@@ -235,7 +230,6 @@ public class CaptureTypeServiceTest
     @Test
     public void testFindFilter_notfound()
     {
-        System.out.println( "findFilter" );
         String url_suffix = "goose";
         CaptureType value = new CaptureType();
         value.setCaptureFilter( "testfilter" );
@@ -257,7 +251,6 @@ public class CaptureTypeServiceTest
     @Test
     public void testFindFilter_null_urlsuffix()
     {
-        System.out.println( "findFilter" );
         String url_suffix = null;
         CaptureType value = new CaptureType();
         value.setCaptureFilter( "testfilter" );
@@ -280,7 +273,6 @@ public class CaptureTypeServiceTest
     @Test
     public void testFind_notfound()
     {
-        System.out.println( "find" );
         String url_suffix = "sv";
         CaptureType expResult = null;
         when( em.find( CaptureTypeService.class, url_suffix ) ).thenReturn( null );
@@ -294,7 +286,6 @@ public class CaptureTypeServiceTest
     @Test
     public void testFind_found()
     {
-        System.out.println( "find" );
         String url_suffix = "sv";
         CaptureType persistent = new CaptureType();
         when( em.find( CaptureType.class, url_suffix ) ).thenReturn( persistent );
@@ -311,7 +302,6 @@ public class CaptureTypeServiceTest
     @SuppressWarnings("unchecked")
     public void testList()
     {
-        System.out.println( "list" );
         List<CaptureType> list = Collections.emptyList();
         TypedQuery<CaptureType> query  = mock( TypedQuery.class );
         // I really think this should work, but for some reason, Mockito is complaining about the return type being a TypedQuery<CaptureType> instead of a Query - which it's wrongly expecting.
@@ -328,7 +318,6 @@ public class CaptureTypeServiceTest
     @Test
     public void testDeleteCaptureType()
     {
-        System.out.println( "deleteCaptureType" );
         String url_suffix = "sv";
         CaptureType persistent = new CaptureType();
         persistent.setUrlSuffix( url_suffix );
@@ -340,7 +329,6 @@ public class CaptureTypeServiceTest
     @Test
     public void testDeleteCaptureType_notFound()
     {
-        System.out.println( "deleteCaptureType" );
         String url_suffix = "sv";
         CaptureType persistent = new CaptureType();
         persistent.setUrlSuffix( url_suffix );
@@ -356,7 +344,6 @@ public class CaptureTypeServiceTest
     @Test
     public void testDeleteCaptureType_with_null_urlsuffix()
     {
-        System.out.println( "deleteCaptureType" );
         String url_suffix = null;
         
         try

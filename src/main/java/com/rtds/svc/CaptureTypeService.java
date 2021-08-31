@@ -11,6 +11,10 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 /**
  *
@@ -23,7 +27,7 @@ public class CaptureTypeService
     @Inject
     EntityManager em;
     
-    public void createOrUpdateCaptureType( CaptureType value )
+    public void createOrUpdateCaptureType( @NotNull @Valid CaptureType value )
     {
         if( value == null || value.getLabel() == null || value.getUrlSuffix() == null )
         {
@@ -43,7 +47,7 @@ public class CaptureTypeService
         }
     }
     
-    public String findFilter( String url_suffix )
+    public String findFilter( @NotBlank @Size(min=1,max=10) String url_suffix )
     {
         if( url_suffix == null )
         {
@@ -64,7 +68,7 @@ public class CaptureTypeService
         return type.getCaptureFilter();
     }
     
-    public CaptureType find( String url_suffix )
+    public CaptureType find( @NotBlank @Size(min=1,max=10) String url_suffix )
     {
         return em.find( CaptureType.class, url_suffix );
     }
@@ -74,7 +78,7 @@ public class CaptureTypeService
         return em.createQuery( "select ct from CaptureType ct", CaptureType.class ).getResultList();
     }
     
-    public void deleteCaptureType( String url_suffix )
+    public void deleteCaptureType( @NotBlank @Size(min=1,max=10) String url_suffix )
     {
         if( url_suffix == null )
         {

@@ -11,6 +11,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 
 /**
  *
@@ -25,12 +27,18 @@ public class UserPreference implements Serializable
     private Long id;
     
     @Column(length = 255)
+    @NotBlank
+    @Size( min = 1, max = 255 )
     private String userName;
     
     @Column(length = 255)
+    @NotBlank
+    @Size( min = 1, max = 255 )
     private String prefName;
     
     @Column(length = 255)
+    @NotBlank
+    @Size( min = 1, max = 255 )
     private String prefValue;
 
     public Long getId()

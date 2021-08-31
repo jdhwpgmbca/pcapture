@@ -24,6 +24,8 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.time.Instant;
 import java.util.UUID;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,7 +52,7 @@ public class DumpcapProcessDefaultView
     private Instant lastModifiedTime;
     private Long length;
 
-    public DumpcapProcessDefaultView( DumpcapProcess proc )
+    public DumpcapProcessDefaultView( @NotNull @Valid DumpcapProcess proc )
     {
         this.id = proc.getId();
         this.status = proc.getStatus();
