@@ -1,6 +1,6 @@
 <html>
 <head>
-    <title>PCaptureUI</title>
+    <title>${branding.title} - ${project.version}</title>
     <style>
         html {
             font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
@@ -322,6 +322,14 @@
     </script>
 </head>
 <body>
+    <div style="padding: 1em">
+        <h3>${branding.title}</h3>
+        <div style="float: right">
+            <div style="font-size: smaller">Version ${project.version}</div>
+            <div style="font-size: smaller" id="username"></div>
+        </div>
+        <span style="font-size: smaller">${branding.description}</span>
+    </div>
     <span>
         <span>
             <span style="padding: 1em;" id="startButtonsParent"></span>
@@ -333,8 +341,8 @@
                 <label for="refreshCheckbox">Auto-refresh</label>
                 <input type="checkbox" id="refreshCheckbox" onclick="refreshClick()" checked>
             </span>
-            <span id="username" style="padding: 1em"></span>
         </span>
+    </span>
     <table id="mytable" style="padding: 1em"></table>
     <div style="padding: 1em">
         <button id="refreshButton" hidden="true" onclick="listCaptures()">Refresh</button>

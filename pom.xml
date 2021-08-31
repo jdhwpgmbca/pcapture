@@ -5,8 +5,19 @@
   <groupId>com.rtds</groupId>
   <artifactId>dumpcap-ws</artifactId>
   <version>3.13.0</version>
+  <description>
+      Packet capture frontend for packet capture command-line tools such as
+      tcpdump and dumpcap.
+  </description>
   <properties>
-      
+
+    <!-- The branding properties are displayed on the web page. -->
+    
+    <branding.title>PCapture</branding.title>
+    <branding.description>A web frontend for command-line based packet capture tools.</branding.description>
+    
+    <!-- Project properties that determine how the project is compiled. -->
+    
     <compiler-plugin.version>3.8.1</compiler-plugin.version>
     <maven.compiler.parameters>true</maven.compiler.parameters>
     <maven.compiler.source>11</maven.compiler.source>
@@ -17,6 +28,8 @@
     <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
     <quarkus.platform.version>2.1.2.Final</quarkus.platform.version>
     <surefire-plugin.version>3.0.0-M5</surefire-plugin.version>
+    
+    <!-- Authentication and authorization related properties. -->
     
     <auth.server-url>https://your.keycloak.server</auth.server-url>
     <auth.realm>your-keycloak-realm</auth.realm>
