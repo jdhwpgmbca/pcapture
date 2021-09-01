@@ -101,77 +101,6 @@ public class CaptureTypeServiceTest
      * implementation used by Quarkus will even allow this).
      */
     @Test
-    public void testCreateOrUpdateCaptureType_null()
-    {
-        CaptureType value = null;
-        
-        try
-        {
-            captureTypeService.createOrUpdateCaptureType( value );
-            fail( "Expected IllegalArgumentException not thrown." );
-        }
-        catch( IllegalArgumentException ex )
-        {
-            // Expected: This will be caught and returned as an HTTP status code 400, BAD_REQUEST.
-        }
-    }
-
-    /**
-     * Test of createOrUpdateCaptureType method, of class CaptureTypeService
-     * when the CaptureType is a null value (I'm not sure that the RestEasy
-     * implementation used by Quarkus will even allow this).
-     */
-    @Test
-    public void testCreateOrUpdateCaptureType_label_null()
-    {
-        CaptureType value = new CaptureType();
-        
-        value.setUrlSuffix( "testsuffix" );
-        value.setLabel( null );
-        value.setCaptureFilter( "testfilter" );
-        
-        try
-        {
-            captureTypeService.createOrUpdateCaptureType( value );
-            fail( "Expected IllegalArgumentException not thrown." );
-        }
-        catch( IllegalArgumentException ex )
-        {
-            // Expected: This will be caught and returned as an HTTP status code 400, BAD_REQUEST.
-        }
-    }
-
-    /**
-     * Test of createOrUpdateCaptureType method, of class CaptureTypeService
-     * when the CaptureType is a null value (I'm not sure that the RestEasy
-     * implementation used by Quarkus will even allow this).
-     */
-    @Test
-    public void testCreateOrUpdateCaptureType_urlsuffix_null()
-    {
-        CaptureType value = new CaptureType();
-        
-        value.setUrlSuffix( null );
-        value.setLabel( "testlabel" );
-        value.setCaptureFilter( "testfilter" );
-        
-        try
-        {
-            captureTypeService.createOrUpdateCaptureType( value );
-            fail( "Expected IllegalArgumentException not thrown." );
-        }
-        catch( IllegalArgumentException ex )
-        {
-            // Expected: This will be caught and returned as an HTTP status code 400, BAD_REQUEST.
-        }
-    }
-
-    /**
-     * Test of createOrUpdateCaptureType method, of class CaptureTypeService
-     * when the CaptureType is a null value (I'm not sure that the RestEasy
-     * implementation used by Quarkus will even allow this).
-     */
-    @Test
     public void testCreateOrUpdateCaptureType_filter_null_unfound()
     {
         CaptureType value = new CaptureType();
@@ -246,28 +175,6 @@ public class CaptureTypeServiceTest
     }
 
     /**
-     * Test of findFilter method, of class CaptureTypeService.
-     */
-    @Test
-    public void testFindFilter_null_urlsuffix()
-    {
-        String url_suffix = null;
-        CaptureType value = new CaptureType();
-        value.setCaptureFilter( "testfilter" );
-        when( em.find( CaptureType.class, url_suffix ) ).thenReturn( null );
-        
-        try
-        {
-            captureTypeService.findFilter( url_suffix );
-            fail( "The url_suffix must not be null" );
-        }
-        catch( IllegalArgumentException ex )
-        {
-            
-        }
-    }
-
-    /**
      * Test of find method, of class CaptureTypeService.
      */
     @Test
@@ -316,7 +223,7 @@ public class CaptureTypeServiceTest
      * Test of deleteCaptureType method, of class CaptureTypeService.
      */
     @Test
-    public void testDeleteCaptureType()
+    public void testDeleteCaptureType_found()
     {
         String url_suffix = "sv";
         CaptureType persistent = new CaptureType();
@@ -336,25 +243,6 @@ public class CaptureTypeServiceTest
         captureTypeService.deleteCaptureType( url_suffix );
         verify( em ).find( CaptureType.class, url_suffix );
         Mockito.verifyNoMoreInteractions( em );
-    }
-    
-    /**
-     * Test of deleteCaptureType method, of class CaptureTypeService.
-     */
-    @Test
-    public void testDeleteCaptureType_with_null_urlsuffix()
-    {
-        String url_suffix = null;
-        
-        try
-        {
-            captureTypeService.deleteCaptureType( url_suffix );
-            fail( "Expected IllegalArgumentException not thrown." );
-        }
-        catch( IllegalArgumentException ex )
-        {
-            // expected
-        }
     }
     
 }
