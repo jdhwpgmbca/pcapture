@@ -183,8 +183,13 @@ public class PacketCaptureResource
                 
                 ph.ifPresent( handle -> {
                     handle.destroy();
-                    dumpcapDbService.stopDumpcapProcess( UUID.fromString( id ), getPrincipalName() );
                 } );
+                
+                dumpcapDbService.stopDumpcapProcess( UUID.fromString( id ), getPrincipalName() );
+            }
+            else
+            {
+                dumpcapDbService.stopDumpcapProcess( UUID.fromString( id ), getPrincipalName() );
             }
         }
 
