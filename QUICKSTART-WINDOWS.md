@@ -7,8 +7,7 @@
 
 ### Install and Configure OpenJDK 11
 
-- Download OpenJDK 11 from: https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.12%2B7/OpenJDK11U-jdk_x86-32_windows_hotspot_11.0.12_7.msi
-- Run the downloaded installer.
+- Download and run the OpenJDK 11 installer from: https://adoptopenjdk.net/
 
 ### Install and Configure Apache Maven
 
