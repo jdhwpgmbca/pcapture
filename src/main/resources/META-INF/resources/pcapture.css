@@ -1,0 +1,29 @@
+html {
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    width: 100%;
+    color: #666666;
+    /* text-align: center; */
+}
+table, th, td {
+    padding: 5px;
+}
+tr:nth-child(even) { background-color: #f2f2f2; }
+.popup-overlay {
+    visibility: hidden;
+    position: absolute;
+    background: #ffffff;
+    border: 3px solid #666666;
+    width: 50%;
+    height: 50%;
+    left: 25%;
+}
+.popup-overlay.active {
+    visibility: visible;
+    text-align: center;
+}
+.popup-content {
+    visibility: hidden;
+}
+.popup-content.active {
+    visibility: visible;
+}
