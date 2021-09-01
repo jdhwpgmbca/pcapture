@@ -33,7 +33,7 @@ docker run --rm --name keycloak -e KEYCLOAK_USER=admin -e KEYCLOAK_PASSWORD=admi
 ### settings.xml
 
 - Create a new file called `settings.xml` in your `%USERPROFILE%\.m2` folder. If the folder doesn't exist, create it.
-- Copy the contents of the `settings.xml` file below into your new `settings.xml` file on your `.m2` folder.
+- Copy the contents of the `settings.xml` file below into your new `settings.xml` file in your `.m2` folder.
 
 Note: the `secret` value below under the `auth.backend.secret`, it must match the `backend-service` client credentials.
 
@@ -86,7 +86,7 @@ API_SERVER=http://localhost:8080
 ./mvnw clean compile quarkus:dev
 ```
 
-- This may take a while the first time you build. It needs to download lots of dependencies, not just for my project, but for the Quarkus application server.
+- This may take a while the first time you build. It needs to download lots of dependencies, not just for my project, but also for the Quarkus application server.
 - Once it's done, you should have a working version of the app running on http://localhost:8080.
 - If you go to http://localhost:8080, it should redirect you to the Keycloak server's `quarkus` realm page, if you've done everything correctly, and I haven't missed anything ;)
 - Login using the username `alice` and the password `alice`, or perhaps `admin` and `admin` or `jdoe` and `jdoe`.

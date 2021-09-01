@@ -1,2 +1,2 @@
-.\dumpcap-ws.exe install
-.\dumpcap-ws.exe start
+.\pcapture.exe install
+.\pcapture.exe start

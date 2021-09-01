@@ -1,4 +1,4 @@
-# dumpcap-ws Project
+# PCapture Project
 
 This project uses Quarkus, the Supersonic Subatomic Java Framework.
 
@@ -164,7 +164,7 @@ cd target\win64svc
 
 After the pre-install, the installation folder is essentially complete. You can then copy the win64svc folder to another PC before you install and run the service with the `install-and-run.ps1` script.
 
-This will get a service running on your local PC, running on `http://localhost:8080`. For production deployment, you'll need to uncomment the lines at the bottom of the `dumpcap-ws.xml` file, and provide an SSL certificate and key saved in PKCS12 format (`.pfx` or `.p12`) called `server-cert-and-key.pfx`.
+This will get a service running on your local PC, running on `http://localhost:8080`. For production deployment, you'll need to uncomment the lines at the bottom of the `pcapture.xml` file, and provide an SSL certificate and key saved in PKCS12 format (`.pfx` or `.p12`) called `server-cert-and-key.pfx`.
 
 There's also a file called `stop-and-uninstall.ps1` which can be used to stop uninstall the service. You'll need to at least stop the service if you want to update the jar file used by the running service.
 
@@ -219,7 +219,7 @@ Or, if you don't have GraalVM installed, you can run the native executable build
 ./mvnw package -Pnative -Dquarkus.native.container-build=true
 ```
 
-You can then execute your native executable with: `./target/dumpcap-ws-1.0.0-runner`
+You can then execute your native executable with: `./target/pcapture-[version]-runner`
 
 If you want to learn more about building native executables, please consult https://quarkus.io/guides/maven-tooling.html.
 

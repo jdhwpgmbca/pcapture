@@ -1,2 +1,2 @@
-.\dumpcap-ws.exe stop
-.\dumpcap-ws.exe uninstall
+.\pcapture.exe stop
+.\pcapture.exe uninstall
