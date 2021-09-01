@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.rtds</groupId>
   <artifactId>pcapture</artifactId>
-  <version>3.13.0</version>
+  <version>3.14.0</version>
   <description> 
       Packet capture frontend for packet capture command-line tools such as
       tcpdump and dumpcap.
