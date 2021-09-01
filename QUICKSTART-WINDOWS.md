@@ -29,14 +29,14 @@ docker run --rm --name keycloak -e KEYCLOAK_USER=admin -e KEYCLOAK_PASSWORD=admi
 
 - Login to the admin console at `http://localhost:8081` using username `admin` and password `admin`.
 - Import the quarkus realm from the `realm-export.json` file in the top of the project folder.
-- Go to the `Clients` section on the left-hand navigation menu, and click into each of the clients. For each client that has it's `Access Type` set to `confidential`, go to the `Credentials` tab and click on `Regenerate Secret`.
-- You'll need to use the generated secret for the `backend-service` client later, when you configure the `settings.xml` and `.env` files.
+- The import should default to using the `quarkus` realm. You should stick to that for now. This local keycloak container will not retain it's data once it's stopped.
 
 ### settings.xml
 
-- Create a new file called settings.xml in your %USERPROFILE%\.m2 folder. If the folder doesn't exist, create it.
-- Copy the contents of the settings.xml file below into your new settings.xml file.
-- Replace the `secret` value in your `settings.xml` with the generated secret value from the `backend-service` client above.
+- Create a new file called `settings.xml` in your `%USERPROFILE%\.m2` folder. If the folder doesn't exist, create it.
+- Copy the contents of the `settings.xml` file below into your new `settings.xml` file on your `.m2` folder.
+
+Note: the `secret` value below under the `auth.backend.secret`, it must match the `backend-service` client credentials.
 
 ```xml
 <settings 
@@ -69,7 +69,6 @@ docker run --rm --name keycloak -e KEYCLOAK_USER=admin -e KEYCLOAK_PASSWORD=admi
 
 - Checkout the project with git, if you haven't already. Or if you want, you can download one of the release files and unzip it.
 - Copy the contents of the file below into a file called `.env` in your checked-out project folder.
-- Replace the `secret` in your `.env` file with the generated secret value from the `backend-service` client.
 
 ```shell script
 AUTH_SERVER_URL=http://localhost:8180
@@ -90,8 +89,8 @@ API_SERVER=http://localhost:8080
 
 - This may take a while the first time you build. It needs to download lots of dependencies, not just for my project, but for the Quarkus application server.
 - Once it's done, you should have a working version of the app running on http://localhost:8080.
-- If you go to http://localhost:8080, it should boot you to the Keycloak server's `quarkus` realm page, if you've done everything correctly, and I haven't missed anything ;)
-- Login using the username `alice` and the password `alice`.
+- If you go to http://localhost:8080, it should redirect you to the Keycloak server's `quarkus` realm page, if you've done everything correctly, and I haven't missed anything ;)
+- Login using the username `alice` and the password `alice`, or perhaps `admin` and `admin` or `jdoe` and `jdoe`.
 
 ## Cosmetic Settings
 
@@ -102,5 +101,7 @@ API_SERVER=http://localhost:8080
 <branding.description>A web frontend for command-line based packet capture tools.</branding.description>
 ```
 
-That's it, enjoy!
+## Remember-me
+
+- Remember-me can be turned on in the `Realm Settings` section.
 
