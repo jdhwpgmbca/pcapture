@@ -1,3 +1,4 @@
 
 .\mvnw clean compile package -Pcontainer
-docker build -f src/main/docker/Dockerfile.alpine -t quarkus/dumpcap-ws-jvm .
+$ENV:DOCKER_BUILDKIT=1
+docker build -f target/docker/Dockerfile.alpine -t quarkus/pcapture-jvm .

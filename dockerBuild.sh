@@ -5,4 +5,5 @@
 # outside of the project folder, which is unsuitable for tests.
 
 ./mvnw clean compile package -Pcontainer
-docker build -f src/main/docker/Dockerfile.alpine -t quarkus/dumpcap-ws-jvm .
+DOCKER_BUILDKIT=1 docker build -f target/docker/Dockerfile.alpine -t git.rtdstech.com:4567/jdh/pcapture .
+docker push git.rtdstech.com:4567/jdh/pcapture

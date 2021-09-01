@@ -55,6 +55,9 @@ public class PacketCaptureResource
     @ConfigProperty(name = "start-capture-script")
     String startCaptureScript;
     
+    @ConfigProperty(name = "data-directory")
+    Optional<String> dataDirectory;
+    
     @Inject
     DumpcapDbService dumpcapDbService;
     
@@ -87,7 +90,7 @@ public class PacketCaptureResource
             logger.error( "startCaptureScript can't be found in specified location {}", startCaptureScript );
         }
         
-        java.nio.file.Path path = java.nio.file.Files.createTempFile( "wireshark-capture-", ".pcapng" );
+        java.nio.file.Path path = createCaptureFile();
         
         // This now works on Windows and Ubuntu Linux!
         
@@ -154,7 +157,7 @@ public class PacketCaptureResource
         
         return Response.ok( dbid ).build();
     }
-    
+
     @PUT
     @Path("/{id}")
     @Produces( MediaType.TEXT_PLAIN )
@@ -276,6 +279,35 @@ public class PacketCaptureResource
         // return the same result every time.
             
         return Response.ok().build();
+    }
+    
+    private java.nio.file.Path createCaptureFile() throws IOException
+    {
+        java.nio.file.Path dir = null, path = null;
+        
+        if( dataDirectory.isPresent() && ! dataDirectory.get().isBlank() )
+        {
+            dir = java.nio.file.Paths.get( dataDirectory.get() );
+            
+            if( ! dir.toFile().exists() )
+            {
+                if( dir.toFile().mkdirs() )
+                {
+                    path = java.nio.file.Files.createTempFile( dir, "wireshark-capture-", ".pcapng" );
+                }
+            }
+            else
+            {
+                path = java.nio.file.Files.createTempFile( dir, "wireshark-capture-", ".pcapng" );
+            }
+        }
+        
+        if( path == null )
+        {
+            path = java.nio.file.Files.createTempFile( "wireshark-capture-", ".pcapng" );
+        }
+        
+        return path;
     }
     
     private Optional<String> getPrincipalName()

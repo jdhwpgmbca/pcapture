@@ -163,6 +163,14 @@
       </resource>
       <resource>
           <filtering>true</filtering>
+          <directory>src/main/docker</directory>
+          <targetPath>../docker</targetPath>
+          <includes>
+              <include>Dockerfile.*</include>
+          </includes>
+      </resource>
+      <resource>
+          <filtering>true</filtering>
           <directory>src/main/win64svc</directory>
           <targetPath>../win64svc</targetPath>
           <includes>

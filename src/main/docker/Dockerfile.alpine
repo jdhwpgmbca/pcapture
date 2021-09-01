@@ -1,17 +1,17 @@
 FROM alpine:3.14.1
 
+VOLUME ["/data"]
+
 ARG JAVA_PACKAGE=openjdk11
 ARG RUN_JAVA_VERSION=1.3.8
 ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en'
 
 RUN apk add --no-cache shadow libcap tini bash curl ${JAVA_PACKAGE} \
-    && mkdir /deployments \
-    && chown 1001 /deployments \
-    && chmod "g+rwX" /deployments \
-    && chown 1001:root /deployments \
+    && mkdir -p /deployments && chown 1001:1001 /deployments && chmod 550 /deployments \
+    && mkdir -p /data && chown 1001:1001 /data && chmod 770 /data \
     && curl https://repo1.maven.org/maven2/io/fabric8/run-java-sh/${RUN_JAVA_VERSION}/run-java-sh-${RUN_JAVA_VERSION}-sh.sh -o /deployments/run-java.sh \
-    && chown 1001 /deployments/run-java.sh \
-    && chmod 540 /deployments/run-java.sh
+    && chown 1001:1001 /deployments/run-java.sh \
+    && chmod 550 /deployments/run-java.sh
 
 # && echo "securerandom.source=file:/dev/urandom" >> /etc/alternatives/jre/conf/security/java.security
 
@@ -22,8 +22,7 @@ ENV JAVA_OPTIONS="-Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jb
 RUN apk add --no-cache tcpdump
 
 RUN groupadd -g 1001 quarkus \
-    && useradd -u 1001 -g quarkus -d /home/quarkus -s /bin/bash quarkus \
-    && mkdir /home/quarkus && chown quarkus:quarkus /home/quarkus \
+    && useradd -u 1001 -g quarkus -d /deployments -s /bin/bash quarkus \
     && chgrp quarkus /usr/bin/tcpdump \
     && chmod a+x /usr/bin/tcpdump \
     && /usr/sbin/setcap cap_net_raw,cap_net_admin=eip /usr/bin/tcpdump
@@ -40,16 +39,16 @@ RUN groupadd -g 1001 quarkus \
 # COPY --chown=quarkus target/quarkus-app/app/ /deployments/app/
 # COPY --chown=quarkus target/quarkus-app/quarkus/ /deployments/quarkus/
 
-COPY --chown=quarkus src/main/resources/startCaptureScriptTcpdumpForAlpineContainers.sh /deployments/startCaptureScript.sh
-COPY --chown=quarkus target/dumpcap-ws-*-runner.jar /deployments/
+COPY --chown=quarkus --chmod=550 src/main/resources/startCaptureScriptTcpdumpForAlpineContainers.sh /deployments/startCaptureScript.sh
+COPY --chown=quarkus --chmod=440 target/*-runner.jar /deployments/
 
 ENV START_CAPTURE_SCRIPT=/deployments/startCaptureScript.sh
-ENV AUTH_SERVER_URL=https://keycloak.rtds.com
-ENV AUTH_REALM=pcap
-ENV QUARKUS_OIDC_AUTH_SERVER_URL=https://keycloak.rtds.com/auth/realms/pcap
-ENV QUARKUS_OIDC_CLIENT_ID=backend-service
-ENV QUARKUS_OIDC_CREDENTIALS_SECRET=931a98a3-a80a-4f5a-84fa-e4c6dbfb5028
-ENV QUARKUS_OIDC_TLS_VERIFICATION=required
+ENV DATA_DIRECTORY=/data
+ENV QUARKUS_DATASOURCE_JDBC_URL=jdbc:h2:file:/data/h2db
+ENV QUARKUS_OIDC_AUTH_SERVER_URL=${auth.server-url}/auth/realms/${auth.realm}
+ENV QUARKUS_OIDC_CLIENT_ID=${auth.backend.client-id}
+ENV QUARKUS_OIDC_CREDENTIALS_SECRET=${auth.backend.secret}
+ENV QUARKUS_OIDC_TLS_VERIFICATION=${auth.backend.tls-verification}
 
 EXPOSE 8080
 USER 1001
