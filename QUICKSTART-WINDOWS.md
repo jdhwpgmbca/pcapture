@@ -82,7 +82,7 @@ API_SERVER=http://localhost:8080
 
 # Rename The Network Interface (If Necessary)
 
-The src/main/resources/startCaptureScript.ps1 file contains a network interface name called `vEthernetBridge`. That needst to be changed to the network interface you have on your PC, or the PC that will be running PCapture. If you go to your start menu, and search for `Network Connections`, it will show a window with your network adapter names. The interface name must match one of those names. If there are spaces in the names, this might complicate things. I suggest that if you have spaces in the names, that you rename the network interface that you want to use so that it doesn't have spaces in it's name.
+The `src/main/resources/startCaptureScript.ps1` file contains a network interface name called `vEthernetBridge` that needs to be changed to the network interface you have on your PC, or the PC that will be running PCapture. If you go to your start menu, and search for `Network Connections`, it will show a window with your network adapter names. The interface name must match one of those names. If there are spaces in the names, this might complicate things. I suggest that if you have spaces in the names, that you rename the network interface that you want to use so that it doesn't have spaces in it's name.
 
 ### Now You're ready to start building
 
@@ -107,4 +107,3 @@ The src/main/resources/startCaptureScript.ps1 file contains a network interface 
 ## Remember-me
 
 - Remember-me can be turned on in the `Realm Settings` section.
-
