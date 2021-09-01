@@ -83,8 +83,6 @@ public class PacketCaptureResource
         String filter = captureTypeService.findFilter( url_suffix );
         java.nio.file.Path script_path = java.nio.file.Path.of( startCaptureScript );
         
-        logger.info(  "startCaptureScript path {}", startCaptureScript );
-        
         if( Files.notExists( script_path, LinkOption.NOFOLLOW_LINKS ) )
         {
             logger.error( "startCaptureScript can't be found in specified location {}", startCaptureScript );
