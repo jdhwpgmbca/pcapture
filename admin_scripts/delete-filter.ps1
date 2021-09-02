@@ -4,18 +4,14 @@
 
 # Read environment vqriables from the ".env" file - if it exists.
 
-if (Test-Path .env) {
-    foreach($line in Get-Content .\.env) {
-        if($line -and !$line.startsWith("#")) {
-            $vars=$line.Split("=")
-            $location=Get-Location
-            Set-Location Env:
-            Set-Content -Path $vars[0] -Value $vars[1]
-            Set-Location $location
-        }
-    }
-} elseif (Test-Path ..\.env) {
-    foreach($line in Get-Content ..\.env) {
+$location = (Get-Location).Path
+while ($location -and !(Test-Path (Join-Path $location '.env'))) {
+    $location = Split-Path $location -Parent
+}
+$envpath = Join-Path $location '.env'
+
+if (Test-Path $envpath) {
+    foreach($line in Get-Content $envpath) {
         if($line -and !$line.startsWith("#")) {
             $vars=$line.Split("=")
             $location=Get-Location
