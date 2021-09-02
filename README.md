@@ -117,10 +117,18 @@ The `QUARKUS_OIDC_CREDENTIALS_SECRET` must match the `Keycloak -> Quarkus Realm 
             </properties>
         </profile>
         
+        <profile>
+            <id>network</id>
+            <properties>
+                <ethernet-interface-name>Ethernet</ethernet-interface-name>
+            </properties>
+        </profile>
+        
     </profiles>
 
     <activeProfiles>
         <activeProfile>keycloak</activeProfile>
+        <activeProfile>network</activeProfile>
     </activeProfiles>
 
 </settings>

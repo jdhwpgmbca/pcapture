@@ -64,13 +64,18 @@
 
   <executable>%BASE%\jdk-11.0.11+9-jre\bin\java.exe</executable>
   <arguments>-jar ${project.artifactId}-${project.version}-runner.jar</arguments>
+
   <env name="QUARKUS_OIDC_AUTH_SERVER_URL" value="${auth.server-url}/auth/realms/${auth.realm}" />
   <env name="QUARKUS_OIDC_CLIENT_ID" value="${auth.backend.client-id}"/>
   <env name="QUARKUS_OIDC_CREDENTIALS_SECRET" value="${auth.backend.secret}"/>
   <env name="QUARKUS_OIDC_TLS_VERIFICATION" value="${auth.backend.tls-verification}"/>
+
   <env name="START_CAPTURE_SCRIPT" value="./startCaptureScript.ps1"/>
+  <env name="DATA_DIRECTORY" value=".\data"/>
+  
   <env name="QUARKUS_DATASOURCE_DB_KIND" value="h2"/>
-  <env name="QUARKUS_DATASOURCE_JDBC_URL" value="jdbc:h2:file:./h2db"/>
+  <env name="QUARKUS_DATASOURCE_JDBC_URL" value="jdbc:h2:file:./data/h2db"/>
+  <env name="ETHERNET_INTERFACE_NAME" value="${ethernet-interface-name}"/>
 
   <!-- Uncomment these lines once you have your SSL certificate and key stored in the .p12 or .pfx file below. -->
 

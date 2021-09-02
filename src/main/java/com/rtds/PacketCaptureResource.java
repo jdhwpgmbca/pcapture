@@ -54,6 +54,9 @@ public class PacketCaptureResource
     
     @ConfigProperty(name = "start-capture-script")
     String startCaptureScript;
+
+    @ConfigProperty(name = "ethernet-interface-name")
+    String ethernetInterfaceName;
     
     @ConfigProperty(name = "data-directory")
     Optional<String> dataDirectory;
@@ -107,22 +110,22 @@ public class PacketCaptureResource
                 f.append( filter );
                 f.append( "'" );
 
-                pb = new ProcessBuilder( "powershell.exe",  "-ExecutionPolicy", "RemoteSigned", "-Command", startCaptureScript, f.toString(), path.toString() );
+                pb = new ProcessBuilder( "powershell.exe",  "-ExecutionPolicy", "RemoteSigned", "-Command", startCaptureScript, path.toString(), ethernetInterfaceName, f.toString() );
             }
             else
             {
-                pb = new ProcessBuilder( "powershell.exe",  "-ExecutionPolicy", "RemoteSigned", "-Command", startCaptureScript, path.toString() );
+                pb = new ProcessBuilder( "powershell.exe",  "-ExecutionPolicy", "RemoteSigned", "-Command", startCaptureScript, path.toString(), ethernetInterfaceName );
             }
         }
         else
         {
             if( filter != null )
             {
-                pb = new ProcessBuilder( startCaptureScript, path.toString(), filter );
+                pb = new ProcessBuilder( startCaptureScript, path.toString(), ethernetInterfaceName, filter );
             }
             else
             {
-                pb = new ProcessBuilder( startCaptureScript, path.toString() );
+                pb = new ProcessBuilder( startCaptureScript, path.toString(), ethernetInterfaceName );
             }
         }
         
