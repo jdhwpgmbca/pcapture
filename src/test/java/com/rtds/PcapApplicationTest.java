@@ -28,8 +28,6 @@ import org.junit.jupiter.api.TestMethodOrder;
 @TestMethodOrder( MethodOrderer.OrderAnnotation.class )
 public class PcapApplicationTest
 {
-    private static String id;
-
     @Test
     @TestSecurity( user = "alice", roles = "user" )
     public void testGetConfigJsonAsUser()

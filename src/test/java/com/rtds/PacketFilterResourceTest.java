@@ -30,8 +30,6 @@ import org.junit.jupiter.api.TestMethodOrder;
 @TestMethodOrder( MethodOrderer.OrderAnnotation.class )
 public class PacketFilterResourceTest
 {
-    private static String id;
-
     @Test
     @Order( 1 )
     @TestSecurity( user = "alice", roles = "user" )

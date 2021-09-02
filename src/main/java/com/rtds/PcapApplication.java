@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 @Path("/api/res")
 public class PcapApplication
 {
-    private final Logger logger = LoggerFactory.getLogger( PcapApplication.class );
+    final Logger logger = LoggerFactory.getLogger( PcapApplication.class );
     
     @ConfigProperty( name = "auth.server-url" )
     String authServerUrl;
