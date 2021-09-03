@@ -9,6 +9,11 @@ ARG OIDC_CLIENT_ID=backend-service
 ARG OIDC_CREDENTIALS_SECRET=secret
 ARG OIDC_TLS_VERIFICATION=required
 
+FROM maven:3.8.2-openjdk-11-slim AS build
+COPY src /home/app/src
+COPY pom.xml /home/app
+RUN mvn -f /home/app/pom.xml clean package -Pcontainer
+
 FROM alpine:3
 
 VOLUME ["/data"]
@@ -51,7 +56,7 @@ RUN groupadd -g 1001 quarkus \
 # COPY --chown=quarkus target/quarkus-app/quarkus/ /deployments/quarkus/
 
 COPY --chown=quarkus --chmod=550 src/main/resources/startCaptureScriptTcpdumpForAlpineContainers.sh /deployments/startCaptureScript.sh
-COPY --chown=quarkus --chmod=440 target/*-runner.jar /deployments/
+COPY --from=build --chown=quarkus --chmod=440 /home/app/target/*-runner.jar /deployments/
 
 # The environment variables below are set from the ARG values above, which can optionally be overridden
 # by the Continuous Integration environment.
