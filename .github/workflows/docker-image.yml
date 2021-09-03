@@ -4,11 +4,10 @@ on:
   push:
     branches:
       - master
+    tags:
+      - v*
+
   pull_request:
-    branches:
-      - mater
-  tags:
-    - v*
 
 env:
   IMAGE_NAME: pcapture
