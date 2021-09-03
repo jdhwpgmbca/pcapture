@@ -35,11 +35,8 @@ RUN apk add --no-cache shadow libcap tini bash curl ${JAVA_PACKAGE} \
 ENV JAVA_OPTIONS="-Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager"
 # We make four distinct layers so if there are application changes the library layers can be re-used
 
-RUN apk add --no-cache tcpdump
-
-RUN groupadd -g 1001 quarkus \
-    && useradd -u 1001 -g quarkus -d /deployments -s /bin/bash quarkus \
-    && chgrp quarkus /usr/bin/tcpdump \
+RUN apk add --no-cache tcpdump \
+    && chgrp 1001 /usr/bin/tcpdump \
     && chmod a+x /usr/bin/tcpdump \
     && /usr/sbin/setcap cap_net_raw,cap_net_admin=eip /usr/bin/tcpdump
 
@@ -55,8 +52,9 @@ RUN groupadd -g 1001 quarkus \
 # COPY --chown=quarkus target/quarkus-app/app/ /deployments/app/
 # COPY --chown=quarkus target/quarkus-app/quarkus/ /deployments/quarkus/
 
-COPY --chown=quarkus --chmod=550 src/main/resources/startCaptureScriptTcpdumpForAlpineContainers.sh /deployments/startCaptureScript.sh
-COPY --from=build --chown=quarkus --chmod=440 /home/app/target/*-runner.jar /deployments/
+COPY --chown=1001 src/main/resources/startCaptureScriptTcpdumpForAlpineContainers.sh /deployments/startCaptureScript.sh
+COPY --from=build --chown=1001 /home/app/target/*-runner.jar /deployments/
+RUN chmod 550 /deployments/startCaptureScript.sh && chmod 440 /deployments/*-runner.jar
 
 # The environment variables below are set from the ARG values above, which can optionally be overridden
 # by the Continuous Integration environment.
