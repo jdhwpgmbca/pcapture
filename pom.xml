@@ -35,8 +35,8 @@
     
     <!-- Authentication and authorization related properties. -->
     
-    <auth.server-url>https://your.keycloak.server</auth.server-url>
-    <auth.realm>your-keycloak-realm</auth.realm>
+    <auth.server-url>http://localhost:8180</auth.server-url>
+    <auth.realm>pcapture</auth.realm>
     
     <auth.frontend.ssl-required>external</auth.frontend.ssl-required>
     <auth.frontend.client-id>frontend-client</auth.frontend.client-id>

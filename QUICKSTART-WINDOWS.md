@@ -16,29 +16,23 @@
 - Unzip maven into a directory and set the M3_HOME environment variable to point to the install directory. Then add %M3_HOME%\bin to the PATH environment variable.
 - Open a new command shell. If running mvn or java doesn't work, you may need to reboot.
 
-## Install Keycloak (Requires Docker)
+## Install & Run Keycloak (Requires Docker)
 
-- Use the docker command below to start a local Keycloak server instance.
-
-```shell
-docker run --rm --name keycloak -e KEYCLOAK_USER=admin -e KEYCLOAK_PASSWORD=admin -p 8180:8080 jboss/keycloak
-```
-
-- Add user `alice` with password `alice`, and user `admin` with password `admin`. Go into the `alice` user configuration and into `Role Mappings` and add the `user` role. Go into the `admin` user and into the `Role Mappings` and add the `user`, `admin`, and `filter_admin` roles.
-
-## Configuring Keycloak
-
-- Login to the admin console at `http://localhost:8081` using username `admin` and password `admin`.
-- Import the `pcap` realm from the `realm-export.json` file in the top of the project folder.
-- The import should default to using the `pcap` realm. You should stick to that for now. This local keycloak container will not retain it's data once it's stopped.
+- run `keycloakRun.ps1` script. It will lauch a docker container running keycloak at this URL: `http://localhost:8180`
+- A realm called `pcapture` will be setup, the roles and clients will be configured. There are no users configured, because Keycloak doen't support exporting or importing users.
+- Create a test user called `alice`. Go to the credential tab, and set the password to `alice`. Go to the `Role Mappings` tab and add the `user` role.
+- Create a test user called `admin`. Go to the credential tab, and set the password to `admin`. Go to the `Role Mappings` tab and add the `user`, `admin` and `filter_admin` roles.
+- If the container is restarted, it *WILL* retain the added users.
+- Restart the container with `keycloakRestart.ps1` or simply use `docker restart keycloak`.
 
 ## settings.xml
 
-- Create a new file called `settings.xml` in your `%USERPROFILE%\.m2` folder. If the folder doesn't exist, create it.
-- Copy the contents of the `settings.xml` file below into your new `settings.xml` file in your `.m2` folder.
+- Create a new file called `settings.xml` in your `%USERPROFILE%\.m2` folder, and copy the contents of the example `settings.xml` file below into it.
 - Adjust the name of the `ethernet-network-interface` value in your new `settings.xml` file to suit your network configuration. Rename your network interface in Windows if there are any spaces in the name.
+- The network interfaces can be found on Windows 10 computers by clicking on the start menu and typing `network` in the search menu, then clicking on the `View Network Connections` item.
+- The name of the network connection must exactly match the value you enter into your `settings.xml` file. I recommend renaming the network connection in Windows if it has spaces in it.
 
-Note: the `secret` value below under the `auth.backend.secret`, it must match the `backend-service` client credentials.
+Note: the `secret` value below under the `auth.backend.secret`, it must match the `backend-service` client credentials in the Keycloak realm. If you didn't regenerate the `backend-service` secret, this will match what is in the file below.
 
 ```xml
 <settings 
@@ -53,11 +47,11 @@ Note: the `secret` value below under the `auth.backend.secret`, it must match th
             <id>keycloak</id>
             <properties>
                 <auth.server-url>http://localhost:8180</auth.server-url>
-                <auth.realm>pcap</auth.realm>
+                <auth.realm>pcapture</auth.realm>
                 <auth.backend.secret>secret</auth.backend.secret>
             </properties>
         </profile>
-        
+
         <profile>
             <id>network</id>
             <properties>
@@ -79,21 +73,25 @@ Note: the `secret` value below under the `auth.backend.secret`, it must match th
 
 - Checkout the project with git, if you haven't already. Or if you want, you can download one of the release files and unzip it.
 - Copy the contents of the file below into a file called `.env` in your checked-out project folder.
+- Edit the ETHERNET_INTERFACE_NAME to match the value of the `ethernet-interface-name` value you used in your `settings.xml`.
 
-```shell script
+```shell
 AUTH_SERVER_URL=http://localhost:8180
-AUTH_REALM=pcap
-QUARKUS_OIDC_AUTH_SERVER_URL=http://localhost:8180/auth/realms/pcap
+AUTH_REALM=pcapture
+QUARKUS_OIDC_AUTH_SERVER_URL=http://localhost:8180/auth/realms/pcapture
 QUARKUS_OIDC_CREDENTIALS_SECRET=secret
-QUARKUS_KEYCLOAK_DEVSERVICES_REALM_NAME=pcap
-ADMIN_USER_NAME=alice
-ADMIN_USER_PASSWORD=alice
+QUARKUS_KEYCLOAK_DEVSERVICES_REALM_NAME=pcapture
+ETHERNET_INTERFACE_NAME=Ethernet
+
+# Used for scripts
+
+ADMIN_USER_NAME=admin
+ADMIN_USER_PASSWORD=admin
 API_SERVER=http://localhost:8080
+
+KEYCLOAK_CA_CERT=
+API_CA_CERT=
 ```
-
-## Rename The Network Interface (If Necessary)
-
-The `src/main/resources/startCaptureScript.ps1` file contains a network interface name called `vEthernetBridge` that needs to be changed to the network interface you have on your PC, or the PC that will be running PCapture. If you go to your start menu, and search for `Network Connections`, it will show a window with your network adapter names. The interface name must match one of those names. If there are spaces in the names, this might complicate things. I suggest that if you have spaces in the names, that you rename the network interface that you want to use so that it doesn't have spaces in it's name.
 
 ## Now You're ready to start building
 
@@ -102,9 +100,10 @@ The `src/main/resources/startCaptureScript.ps1` file contains a network interfac
 ```
 
 - This may take a while the first time you build. It needs to download lots of dependencies, not just for my project, but also for the Quarkus application server.
-- Once it's done, you should have a working version of the app running on http://localhost:8080.
-- If you go to http://localhost:8080, it should redirect you to the Keycloak server's `pcap` realm page, if you've done everything correctly, and I haven't missed anything ;)
-- Login using the username `alice` and the password `alice`, or perhaps `admin` and `admin` or `jdoe` and `jdoe`.
+- Once it's done, you should have a working version of the app running on `http://localhost:8080`, and Keycloak will be running on `http://localhost:8180`.
+- If you go to `http://localhost:8080`, it should redirect you to the Keycloak server's `pcapture` realm page, if you've done everything correctly, and I haven't missed anything ;)
+- Login using the username `alice` and the password `alice`. Start a capture, but don't stop it, and log out.
+- Login using the username `admin` and the password `admin`. Click on the `Toggle All Users` button. You should see that the `admin` user can see the captures the `alice` user captured.
 
 ## Cosmetic Settings
 
@@ -117,4 +116,4 @@ The `src/main/resources/startCaptureScript.ps1` file contains a network interfac
 
 ## Remember-me
 
-- Remember-me can be turned on in the `Realm Settings` section.
+- Remember-me can be turned on or off in the `Realm Settings` section.
