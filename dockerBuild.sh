@@ -4,5 +4,6 @@
 # uses /deployments/startCaptureScript.sh for the capture script, and that's
 # outside of the project folder, which is unsuitable for tests.
 
-./mvnw clean compile package -Pcontainer
-DOCKER_BUILDKIT=1 docker build -f target/docker/Dockerfile.alpine -t pcapture:latest .
+# DOCKER_BUILDKIT=1
+
+docker build -t pcapture:latest -t jdhwpgmbca/pcapture .

@@ -1,4 +1,12 @@
+FROM maven:3.8.2-openjdk-11-slim AS build
+COPY src /home/app/src
+COPY pom.xml /home/app
+RUN mvn -f /home/app/pom.xml clean package -Pcontainer
+
+FROM alpine:3
+
 ARG CAPTURE_SCRIPT=/deployments/startCaptureScript.sh
+ARG ETHERNET_INTERFACE_NAME=Ethernet
 ARG DATA_DIR=/data
 ARG DATASOURCE_DB_KIND=h2
 ARG DATASOURCE_JDBC_URL=jdbc:h2:file:/data/h2db
@@ -9,25 +17,21 @@ ARG OIDC_CLIENT_ID=backend-service
 ARG OIDC_CREDENTIALS_SECRET=secret
 ARG OIDC_TLS_VERIFICATION=required
 
-FROM maven:3.8.2-openjdk-11-slim AS build
-COPY src /home/app/src
-COPY pom.xml /home/app
-RUN mvn -f /home/app/pom.xml clean package -Pcontainer
-
-FROM alpine:3
-
-VOLUME ["/data"]
-
 ARG JAVA_PACKAGE=openjdk11
 ARG RUN_JAVA_VERSION=1.3.8
 ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en'
 
 RUN apk add --no-cache shadow libcap tini bash curl ${JAVA_PACKAGE} \
     && mkdir -p /deployments && chown 1001:1001 /deployments && chmod 550 /deployments \
-    && mkdir -p /data && chown 1001:1001 /data && chmod 770 /data \
     && curl https://repo1.maven.org/maven2/io/fabric8/run-java-sh/${RUN_JAVA_VERSION}/run-java-sh-${RUN_JAVA_VERSION}-sh.sh -o /deployments/run-java.sh \
     && chown 1001:1001 /deployments/run-java.sh \
-    && chmod 550 /deployments/run-java.sh
+    && chmod 550 /deployments/run-java.sh \
+    && mkdir -p ${DATA_DIR} && chown -R 1001:1001 ${DATA_DIR}
+
+# The VOLUME directive must come *AFTER* the mount point is created with the correct permissions.
+# If it is not, then the volume will have the correct permissions.
+
+VOLUME ["${DATA_DIR}"]
 
 # && echo "securerandom.source=file:/dev/urandom" >> /etc/alternatives/jre/conf/security/java.security
 
@@ -59,18 +63,19 @@ RUN chmod 550 /deployments/startCaptureScript.sh && chmod 440 /deployments/*-run
 # The environment variables below are set from the ARG values above, which can optionally be overridden
 # by the Continuous Integration environment.
 
-ENV START_CAPTURE_SCRIPT=$START_CAPTURE_SCRIPT
-ENV DATA_DIRECTORY=$DATA_DIR
+ENV START_CAPTURE_SCRIPT="$CAPTURE_SCRIPT"
+ENV ETHERNET_INTERFACE_NAME="${ETHERNET_INTERFACE_NAME}"
+ENV DATA_DIRECTORY="${DATA_DIR}"
 
-ENV QUARKUS_DATASOURCE_DB_KIND=$DATASOURCE_DB_KIND
-ENV QUARKUS_DATASOURCE_JDBC_URL=DATASOURCE_JDBC_URL
-ENV QUARKUS_DATASOURCE_USERNAME=$DATASOURCE_USERNAME
-ENV QUARKUS_DATASOURCE_PASSWORD=$DATASOURCE_PASSWORD
+ENV QUARKUS_DATASOURCE_DB_KIND="${DATASOURCE_DB_KIND}"
+ENV QUARKUS_DATASOURCE_JDBC_URL="${DATASOURCE_JDBC_URL}"
+ENV QUARKUS_DATASOURCE_USERNAME="${DATASOURCE_USERNAME}"
+ENV QUARKUS_DATASOURCE_PASSWORD="${DATASOURCE_PASSWORD}"
 
-ENV QUARKUS_OIDC_AUTH_SERVER_URL=$AUTH_SERVER_URL
-ENV QUARKUS_OIDC_CLIENT_ID=$OIDC_CLIENT_ID
-ENV QUARKUS_OIDC_CREDENTIALS_SECRET=$OIDC_CREDENTIALS_SECRET
-ENV QUARKUS_OIDC_TLS_VERIFICATION=$OIDC_TLS_VERIFICATION
+ENV QUARKUS_OIDC_AUTH_SERVER_URL="${AUTH_SERVER_URL}"
+ENV QUARKUS_OIDC_CLIENT_ID="${OIDC_CLIENT_ID}"
+ENV QUARKUS_OIDC_CREDENTIALS_SECRET="${OIDC_CREDENTIALS_SECRET}"
+ENV QUARKUS_OIDC_TLS_VERIFICATION="${OIDC_TLS_VERIFICATION}"
 
 EXPOSE 8080
 USER 1001
