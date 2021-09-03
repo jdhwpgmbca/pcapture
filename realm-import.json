@@ -1,5 +1,5 @@
 {
-  "id": "pcap",
+  "id": "pcapture",
   "realm": "pcapture",
   "displayName": "PCapture",
   "notBefore": 0,
@@ -51,7 +51,7 @@
         "name": "admin",
         "composite": false,
         "clientRole": false,
-        "containerId": "pcap",
+        "containerId": "pcapture",
         "attributes": {}
       },
       {
@@ -59,7 +59,7 @@
         "name": "confidential",
         "composite": false,
         "clientRole": false,
-        "containerId": "pcap",
+        "containerId": "pcapture",
         "attributes": {}
       },
       {
@@ -68,7 +68,7 @@
         "description": "${role_offline-access}",
         "composite": false,
         "clientRole": false,
-        "containerId": "pcap",
+        "containerId": "pcapture",
         "attributes": {}
       },
       {
@@ -77,16 +77,16 @@
         "description": "${role_uma_authorization}",
         "composite": false,
         "clientRole": false,
-        "containerId": "pcap",
+        "containerId": "pcapture",
         "attributes": {}
       },
       {
         "id": "bc998e17-2d29-4e6d-ac0b-6238025e0730",
-        "name": "default-roles-pcap",
+        "name": "default-roles-pcapture",
         "description": "${role_default-roles}",
         "composite": false,
         "clientRole": false,
-        "containerId": "pcap",
+        "containerId": "pcapture",
         "attributes": {}
       },
       {
@@ -94,7 +94,7 @@
         "name": "filter_admin",
         "composite": false,
         "clientRole": false,
-        "containerId": "pcap",
+        "containerId": "pcapture",
         "attributes": {}
       },
       {
@@ -102,7 +102,7 @@
         "name": "user",
         "composite": false,
         "clientRole": false,
-        "containerId": "pcap",
+        "containerId": "pcapture",
         "attributes": {}
       }
     ],
@@ -428,11 +428,11 @@
   "groups": [],
   "defaultRole": {
     "id": "bc998e17-2d29-4e6d-ac0b-6238025e0730",
-    "name": "default-roles-pcap",
+    "name": "default-roles-pcapture",
     "description": "${role_default-roles}",
     "composite": false,
     "clientRole": false,
-    "containerId": "pcap"
+    "containerId": "pcapture"
   },
   "requiredCredentials": [
     "password"
@@ -529,13 +529,13 @@
       "clientId": "account-console",
       "name": "${client_account-console}",
       "rootUrl": "${authBaseUrl}",
-      "baseUrl": "/realms/pcap/account/",
+      "baseUrl": "/realms/pcapture/account/",
       "surrogateAuthRequired": false,
       "enabled": true,
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
       "redirectUris": [
-        "/realms/pcap/account/*"
+        "/realms/pcapture/account/*"
       ],
       "webOrigins": [],
       "notBefore": 0,

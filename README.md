@@ -156,7 +156,7 @@ The file creates a realm with some default passwords that the application has co
 
 In a production deployment, you'll probably use the User Federation section to synchronize users from Active Directory, and also add a `group-ldap-mapper` to map AD groups to Keycloak groups. Then you'll want to assign roles to the newly imported Keycloak groups in the group's `Role Mappings` tab.
 
-Update: You'll now need to create a new role called `filter_admin` under the `quarkus` realm provided in the above realm import. That's in addition to the `admin` and `user` roles that should already be there if you used the quickstart link above to create the realm. I also suggest you rename your realm to something more appropriate like `pcap`. If you do rename your realm though, make sure that you change it in the `settings.xml` and `.env` files above. After you've created the role, you should assign it to one of the test users under the users section. This is done under the `Role Mappings` tab on the user's page.
+Update: You'll now need to create a new role called `filter_admin` under the `pcapture` realm provided in the above realm import. That's in addition to the `admin` and `user` roles that should already be there if you used the quickstart link above to create the realm. I also suggest you rename your realm to something more appropriate like `pcapture`. If you do rename your realm though, make sure that you change it in the `settings.xml` and `.env` files above. After you've created the role, you should assign it to one of the test users under the users section. This is done under the `Role Mappings` tab on the user's page.
 
 # Windows Service Deployment
 

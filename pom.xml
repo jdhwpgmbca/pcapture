@@ -58,7 +58,7 @@
     <!-- The JDBC URLs: There's also an override in the container profile for the
         different filesystem layout that's used. -->
     
-    <data.directory>${basedir}/data</data.directory>
+    <data.directory>../data</data.directory>
 
     <jdbc.kind>h2</jdbc.kind>    
     <jdbc.username>dumcap-user</jdbc.username>
@@ -68,7 +68,7 @@
     <test.jdbc.url>jdbc:h2:mem:test</test.jdbc.url>
     <prod.jdbc.url>jdbc:h2:file:${data.directory}/h2db</prod.jdbc.url>
     
-    <start-capture-script>${project.basedir}/src/main/resources/startCaptureScript.ps1</start-capture-script>
+    <start-capture-script>../src/main/resources/startCaptureScript.ps1</start-capture-script>
     
   </properties>
   <dependencyManagement>
@@ -149,6 +149,7 @@
           <exclude>**/*.yml</exclude>
           <exclude>**/*.json</exclude>
           <exclude>**/*.html</exclude>
+          <exclude>**/*.ps1</exclude>
         </excludes>
       </resource>
       <resource>
@@ -163,6 +164,7 @@
           <include>**/*.yml</include>
           <include>**/*.json</include>
           <include>**/*.html</include>
+          <include>**/*.ps1</include>
         </includes>
       </resource>
       <resource>

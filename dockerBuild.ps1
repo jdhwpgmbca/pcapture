@@ -1,4 +1,4 @@
 
 .\mvnw clean compile package -Pcontainer
 $ENV:DOCKER_BUILDKIT=1
-docker build -f target/docker/Dockerfile.alpine -t pcapture:latest .
+docker build -t pcapture:latest -t jdhwpgmbca/pcapture .

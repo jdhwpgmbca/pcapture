@@ -20,10 +20,11 @@
 
 - run `keycloakRun.ps1` script. It will lauch a docker container running keycloak at this URL: `http://localhost:8180`
 - A realm called `pcapture` will be setup, the roles and clients will be configured. There are no users configured, because Keycloak doen't support exporting or importing users.
-- Create a test user called `alice`. Go to the credential tab, and set the password to `alice`. Go to the `Role Mappings` tab and add the `user` role.
-- Create a test user called `admin`. Go to the credential tab, and set the password to `admin`. Go to the `Role Mappings` tab and add the `user`, `admin` and `filter_admin` roles.
+- Wait for the container to come up. You can monitor this from the Docker Desktop application. It should take about 2 minutes.
+- Create a test user called `alice`. Go to the credential tab, and set the password to `alice` and turn temporary off. Go to the `Role Mappings` tab and add the `user` role. You may need to scroll down to see the `user` role.
+- Create a test user called `admin`. Go to the credential tab, and set the password to `admin` and turn temporary off. Go to the `Role Mappings` tab and add the `user`, `admin` and `filter_admin` roles.
 - If the container is restarted, it *WILL* retain the added users.
-- Restart the container with `keycloakRestart.ps1` or simply use `docker restart keycloak`.
+- Restart the container with `keycloakRestart.ps1` or simply use `docker restart keycloak` or the Docker Desktop application to start/stop/restart it.
 
 ## settings.xml
 
