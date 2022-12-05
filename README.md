@@ -26,7 +26,7 @@ If you want to learn more about Quarkus, please visit its website: https://quark
 
 ### Install and Configure Apache Maven
 
-- Make sure that your JAVA_HOME is set to the installation folder, and your PATH contains %JAVA_HOME%\bin. If it isn't, you may need to reboot. If it still isn't set the environment variables manually.
+- Make sure that your JAVA_HOME is set to the Java installation folder, and your PATH contains %JAVA_HOME%\bin. If it isn't, you may need to reboot. If it still isn't set the environment variables manually.
 - Download Apache Maven from https://maven.apache.org/download.cgi
 - Unzip maven into a directory and set the M3_HOME environment variable to point to the install directory. Then add %M3_HOME%\bin to the PATH environment variable.
 - Open a new command shell. If running mvn or java doesn't work, you may need to reboot.
