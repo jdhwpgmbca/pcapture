@@ -115,7 +115,7 @@ API_CA_CERT=
 ./mvnw clean compile quarkus:dev
 ```
 
-- This may take a while the first time you build. It needs to download lots of dependencies, not just for my project, but also for the Quarkus application server.
+- This may take a while the first time you build. It needs to download lots of dependencies, not just for this project, but also for the Quarkus application server.
 - Once it's done, you should have a working version of the app running on `http://localhost:8080`, and Keycloak will be running on `http://localhost:8180`.
 - If you go to `http://localhost:8080`, it should redirect you to the Keycloak server's `pcapture` realm page, if you've done everything correctly, and I haven't missed anything ;)
 - Login using the username `alice` and the password `alice`. Start a capture, but don't stop it, and log out.
